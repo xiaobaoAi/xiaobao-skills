@@ -9,16 +9,19 @@ import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs, printJson, friendlyError } from './vendor/xiaobao-api/client.mjs'
+import { publicAvatarNames, resolveAvatarUrl } from './lib/public-catalog.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const args = parseArgs()
 
 const text = String(args.text || '').trim()
-const personVideo = String(args['person-video'] || args['video-url'] || '').trim()
+const voiceHint = String(args['voice-name'] || args.name || '').trim()
+const personRaw = String(args['person-video'] || args['video-url'] || '').trim()
+const personVideo = resolveAvatarUrl(personRaw, voiceHint || '热情娜娜')
 
 if (!text || !personVideo) {
     console.error(
-        '用法: node speak.mjs --text "文案" --person-video https://形象.mp4 --voice-name 我的音色'
+        `用法: node speak.mjs --text "文案" [--voice-name 热情娜娜] [--person-video 年轻女性商务]\n公共形象：${publicAvatarNames().join('、')}`
     )
     process.exit(1)
 }
@@ -50,11 +53,13 @@ function run(script, extra) {
 
 try {
     const ttsArgs = ['--text', text]
-    if (args['voice-name']) ttsArgs.push('--voice-name', String(args['voice-name']))
+    if (voiceHint) ttsArgs.push('--voice-name', voiceHint)
+    else if (!args['audio-url'] && !args['voice-url'] && !args['voice-id']) {
+        ttsArgs.push('--voice-name', '热情娜娜')
+    }
     if (args['audio-url'] || args['voice-url']) {
         ttsArgs.push('--audio-url', String(args['audio-url'] || args['voice-url']))
     }
-    if (args.name) ttsArgs.push('--voice-name', String(args.name))
     if (args['voice-id']) ttsArgs.push('--voice-id', String(args['voice-id']))
 
     const tts = await run('tts.mjs', ttsArgs)
@@ -73,7 +78,8 @@ try {
         ok: true,
         audio_url: audioUrl,
         video_url: avatar.video_url,
-        voice_name: tts.voice_name || null,
+        voice_name: tts.voice_name || voiceHint || '热情娜娜',
+        person: personRaw || null,
         next: '可将 video_url 交给 xiaobao-viral-agent 做模版混剪/包装'
     })
 } catch (e) {

@@ -59,8 +59,10 @@ node scripts/route.mjs --text "用户原话"
 
 ```bash
 node scripts/run-workflow.mjs --id w1_video_digital_clip \
-  --url "原视频" --person-video "形象.mp4" --voice-name "老板音"
+  --url "原视频" --voice-name "热情娜娜" --person-video "年轻女性商务"
 ```
+
+形象和音色可省略，数字人 Skill 会用公共形象和公共音色，不要让用户先克隆。
 
 每步返回：
 

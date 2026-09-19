@@ -21,15 +21,28 @@ import {
     upsertVoice,
     saveCredentials
 } from './vendor/xiaobao-api/credentials.mjs'
+import { defaultPublicVoice, findPublicVoice, publicVoiceNames } from './lib/public-catalog.mjs'
 
 const args = parseArgs()
 
 function resolveVoice(body) {
     const byName = String(args['voice-name'] || body.voice_name || '').trim()
     if (byName) {
-        const found = findVoiceByName(byName)
-        if (!found) throw new Error(`未找到名为「${byName}」的音色，请先克隆声音或换一个名称`)
-        return { voice_id: found.voice_id, voice_type: found.voice_type || 'custom', voice_name: found.name }
+        const saved = findVoiceByName(byName)
+        if (saved) {
+            return {
+                voice_id: saved.voice_id,
+                voice_type: saved.voice_type || 'custom',
+                voice_name: saved.name
+            }
+        }
+        const pub = findPublicVoice(byName)
+        if (pub) {
+            return { voice_id: pub.voice_id, voice_type: 'public', voice_name: pub.name }
+        }
+        throw new Error(
+            `未找到名为「${byName}」的音色。可直接用公共音色：${publicVoiceNames().join('、')}。只有用户明确要自己的声音时才克隆。`
+        )
     }
     const id = String(args['voice-id'] || body.voice_id || '').trim()
     if (id) {
@@ -47,7 +60,8 @@ function resolveVoice(body) {
             voice_name: '默认音色'
         }
     }
-    throw new Error('请指定音色：--voice-name 已克隆名称，或先 --audio-url 克隆，或配置默认音色')
+    const fallback = defaultPublicVoice()
+    return { voice_id: fallback.voice_id, voice_type: 'public', voice_name: fallback.name }
 }
 
 try {

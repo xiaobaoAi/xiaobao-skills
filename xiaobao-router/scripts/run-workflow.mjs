@@ -35,6 +35,13 @@ function spokenText(copy) {
     return text.slice(0, 1200)
 }
 
+function speakArgs(copy) {
+    const argv = ['--text', spokenText(copy)]
+    if (person) argv.push('--person-video', person)
+    if (voiceName) argv.push('--voice-name', voiceName)
+    return argv
+}
+
 function print(envelope) {
     process.stdout.write(`${JSON.stringify(envelope, null, 2)}\n`)
     process.exit(envelope.success ? 0 : 1)
@@ -123,8 +130,8 @@ const styleHint = String(args['style-hint'] || '')
 try {
     let depth = 1
     if (id === 'w1_video_digital_clip' || id === 'w3_video_rewrite_digital_clip') {
-        if (!url || !person || !voiceName) {
-            print(fail('还需要视频链接、数字人形象视频，以及音色名称', 'NEED_INPUT'))
+        if (!url) {
+            print(fail('还需要原视频链接。形象和音色可不填，将使用公共形象与公共音色。', 'NEED_INPUT'))
         }
         const understood = await callSkill(
             'xiaobao-video-agent',
@@ -151,7 +158,7 @@ try {
         const spoken = await callSkill(
             'xiaobao-digital-human',
             'speak.mjs',
-            ['--text', spokenText(copy), '--person-video', person, '--voice-name', voiceName],
+            speakArgs(copy),
             depth
         )
         depth += 1
@@ -168,15 +175,10 @@ try {
     }
 
     if (id === 'w2_copy_tts_digital_clip') {
-        if (!text || !person || !voiceName) {
-            print(fail('还需要文案、形象视频和音色名称', 'NEED_INPUT'))
+        if (!text) {
+            print(fail('还需要口播文案。形象和音色可不填，将使用公共形象与公共音色。', 'NEED_INPUT'))
         }
-        const spoken = await callSkill(
-            'xiaobao-digital-human',
-            'speak.mjs',
-            ['--text', spokenText(text), '--person-video', person, '--voice-name', voiceName],
-            1
-        )
+        const spoken = await callSkill('xiaobao-digital-human', 'speak.mjs', speakArgs(text), 1)
         if (!spoken.success) print(spoken)
         print(
             await clip({

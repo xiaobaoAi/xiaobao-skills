@@ -18,6 +18,10 @@ import { digitalScript } from '../xiaobao-viral-agent/scripts/lib/delegate-digit
 import { apiTypeToPath, modeToApiType } from '../xiaobao-viral-agent/scripts/lib/api.mjs'
 import { fromParseData, normalizeSubtitle } from '../xiaobao-video-agent/scripts/lib/schema.mjs'
 import { assertBizOk, extractTaskId, isDirectMediaUrl } from '../shared/xiaobao-api/client.mjs'
+import {
+    findPublicVoice,
+    resolveAvatarUrl
+} from '../xiaobao-digital-human/scripts/lib/public-catalog.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -133,6 +137,17 @@ test('视频理解字段缺失为 null', () => {
     assert.deepEqual(normalizeSubtitle('第一句\n第二句'), [{ text: '第一句' }, { text: '第二句' }])
     assert.equal(isDirectMediaUrl('https://a.com/v.mp4?x=1'), true)
     assert.equal(isDirectMediaUrl('https://v.douyin.com/abc'), false)
+})
+
+test('公共音色和形象按称呼解析，不必克隆', () => {
+    assert.equal(findPublicVoice('热情娜娜').voice_type, 'public')
+    assert.equal(findPublicVoice('男声').name, '阳光男生')
+    assert.equal(findPublicVoice('悠悠').gender, 'female')
+    assert.match(findPublicVoice('磁性男士').voice_id, /^c5469fea/)
+    assert.match(resolveAvatarUrl('年轻女性商务'), /^https:\/\//)
+    assert.match(resolveAvatarUrl('', '故事解读'), /202609100859527333c4612/)
+    assert.match(resolveAvatarUrl('', '热情娜娜'), /20260910085951e1d8c1631/)
+    assert.equal(resolveAvatarUrl('https://example.com/a.mp4', '女声'), 'https://example.com/a.mp4')
 })
 
 test('业务成功码含 0 和 status 0', () => {
