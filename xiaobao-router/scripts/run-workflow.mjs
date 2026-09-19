@@ -1,0 +1,217 @@
+#!/usr/bin/env node
+/**
+ * 按 Workflow 顺序调用底层 Skill 脚本。Router 不实现开放平台请求。
+ * 用法:
+ *   node run-workflow.mjs --id w1_video_digital_clip --url URL --person-video URL --voice-name 老板音
+ *   node run-workflow.mjs --id w3_video_rewrite_digital_clip --url URL --rewritten-copy "改写后的文案" ...
+ */
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { WORKFLOWS } from './lib/registry.mjs'
+import { fail, ok, MAX_WORKFLOW_DEPTH } from './lib/protocol.mjs'
+import { skillScript } from './lib/locate.mjs'
+import { adapt, runNode } from './lib/invoke.mjs'
+import { pickTemplate } from './lib/templates.mjs'
+
+function argsOf(argv) {
+    const out = {}
+    for (let i = 0; i < argv.length; i++) {
+        if (!argv[i].startsWith('--')) continue
+        const key = argv[i].slice(2)
+        const next = argv[i + 1]
+        if (!next || next.startsWith('--')) out[key] = true
+        else {
+            out[key] = next
+            i++
+        }
+    }
+    return out
+}
+
+function spokenText(copy) {
+    const text = String(copy || '').trim()
+    if (text.length <= 1200) return text
+    return text.slice(0, 1200)
+}
+
+function print(envelope) {
+    process.stdout.write(`${JSON.stringify(envelope, null, 2)}\n`)
+    process.exit(envelope.success ? 0 : 1)
+}
+
+async function callSkill(skill, file, argv, depth, purpose = 'result') {
+    if (depth > MAX_WORKFLOW_DEPTH) {
+        return fail(`工作流超过最大深度 ${MAX_WORKFLOW_DEPTH}，已停止`, 'MAX_DEPTH')
+    }
+    if (skill === 'xiaobao-router') {
+        return fail('Router 不能调用自己', 'CYCLE')
+    }
+    const script = skillScript(skill, file)
+    if (!script) return fail(`未安装技能 ${skill}，或缺少 ${file}`, 'SKILL_MISSING')
+    const raw = await runNode(script, argv)
+    return adapt(skill, raw, purpose)
+}
+
+async function clip({ mode, videoUrl, title, subtitle, materials, styleHint, depth }) {
+    const listed = await callSkill(
+        'xiaobao-viral-agent',
+        'list-templates.mjs',
+        ['--scene', mode === 'videoPackaging' || mode === 'realMan' ? 'realMan' : mode],
+        depth,
+        'raw'
+    )
+    if (!listed.success) return listed
+    const picked = pickTemplate(listed.data, styleHint)
+    if (!picked.styleId) {
+        const options = picked.options.length ? `可选：${picked.options.join('、')}` : '请换一种风格描述'
+        return fail(`没有匹配到剪辑风格。${options}`, 'NO_TEMPLATE')
+    }
+
+    const payload = {
+        styleId: picked.styleId,
+        videoUrl,
+        title: title || '口播成片',
+        processRules: { watermarkShow: false }
+    }
+    if (Array.isArray(subtitle) && subtitle.length) payload.subtitle = subtitle
+    if (Array.isArray(materials) && materials.length) payload.materials = materials
+
+    const file = path.join(os.tmpdir(), `xb-router-${Date.now()}.json`)
+    fs.writeFileSync(file, JSON.stringify(payload))
+    let created
+    try {
+        created = await callSkill(
+            'xiaobao-viral-agent',
+            'create-task.mjs',
+            ['--mode', mode, '--input', file],
+            depth + 1,
+            'raw'
+        )
+    } finally {
+        fs.rmSync(file, { force: true })
+    }
+    if (!created.success) return created
+    const taskId =
+        created.data?.task_id ||
+        created.data?.response?.data?.task_id ||
+        created.data?.data?.task_id
+    if (!taskId) return fail('剪辑任务已提交，但没有返回任务号', 'NO_TASK')
+    const polled = await callSkill(
+        'xiaobao-viral-agent',
+        'poll-task.mjs',
+        ['--mode', mode, '--task-id', String(taskId)],
+        depth + 2
+    )
+    if (polled.success) polled.data.style_name = picked.styleName || null
+    return polled
+}
+
+const args = argsOf(process.argv.slice(2))
+const id = String(args.id || '')
+const wf = WORKFLOWS[id]
+if (!wf) {
+    print(fail('未知 workflow id', 'BAD_WORKFLOW'))
+}
+
+const url = String(args.url || '')
+const person = String(args['person-video'] || '')
+const voiceName = String(args['voice-name'] || '')
+const text = String(args.text || args['rewritten-copy'] || '')
+const styleHint = String(args['style-hint'] || '')
+
+try {
+    let depth = 1
+    if (id === 'w1_video_digital_clip' || id === 'w3_video_rewrite_digital_clip') {
+        if (!url || !person || !voiceName) {
+            print(fail('还需要视频链接、数字人形象视频，以及音色名称', 'NEED_INPUT'))
+        }
+        const understood = await callSkill(
+            'xiaobao-video-agent',
+            'analyze-video.mjs',
+            ['--url', url, '--intent', 'analyze'],
+            depth
+        )
+        depth += 1
+        if (!understood.success) print(understood)
+        let copy = understood.data.copy || ''
+        if (id === 'w3_video_rewrite_digital_clip' && !args['rewritten-copy']) {
+            print(
+                ok({
+                    status: 'await_agent',
+                    stage: 'rewrite',
+                    copy,
+                    hint: '请改写文案后，带 --rewritten-copy 继续同一 workflow'
+                })
+            )
+        }
+        if (args['rewritten-copy']) copy = String(args['rewritten-copy'])
+        if (!copy) print(fail('没有提取到可用文案', 'NO_COPY'))
+
+        const spoken = await callSkill(
+            'xiaobao-digital-human',
+            'speak.mjs',
+            ['--text', spokenText(copy), '--person-video', person, '--voice-name', voiceName],
+            depth
+        )
+        depth += 1
+        if (!spoken.success) print(spoken)
+        const clipped = await clip({
+            mode: 'realMan',
+            videoUrl: spoken.data.video_url,
+            title: understood.data.title,
+            subtitle: understood.data.subtitle,
+            styleHint,
+            depth
+        })
+        print(clipped)
+    }
+
+    if (id === 'w2_copy_tts_digital_clip') {
+        if (!text || !person || !voiceName) {
+            print(fail('还需要文案、形象视频和音色名称', 'NEED_INPUT'))
+        }
+        const spoken = await callSkill(
+            'xiaobao-digital-human',
+            'speak.mjs',
+            ['--text', spokenText(text), '--person-video', person, '--voice-name', voiceName],
+            1
+        )
+        if (!spoken.success) print(spoken)
+        print(
+            await clip({
+                mode: 'realMan',
+                videoUrl: spoken.data.video_url,
+                title: text.slice(0, 18),
+                styleHint,
+                depth: 3
+            })
+        )
+    }
+
+    if (id === 'w4_video_subtitle_pack') {
+        if (!url) print(fail('还需要成片视频链接', 'NEED_INPUT'))
+        const understood = await callSkill(
+            'xiaobao-video-agent',
+            'analyze-video.mjs',
+            ['--url', url, '--intent', 'subtitle'],
+            1
+        )
+        if (!understood.success) print(understood)
+        const videoUrl = understood.data.video_url || url
+        print(
+            await clip({
+                mode: 'videoPackaging',
+                videoUrl,
+                title: understood.data.title,
+                subtitle: understood.data.subtitle,
+                styleHint,
+                depth: 3
+            })
+        )
+    }
+
+    print(fail('该 workflow 没有执行分支', 'NOT_IMPLEMENTED'))
+} catch (e) {
+    print(fail(e.message || String(e), 'ROUTER'))
+}

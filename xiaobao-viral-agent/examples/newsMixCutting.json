@@ -1,0 +1,10 @@
+{
+  "styleId": "REPLACE_TEMPLATE_ID",
+  "title": "今日热点：一句话看懂行业动态",
+  "materials": [
+    { "type": "image", "fileUrl": "https://example.com/news-1.jpg" },
+    { "type": "image", "fileUrl": "https://example.com/news-2.jpg" },
+    { "type": "video", "fileUrl": "https://example.com/broll.mp4" }
+  ],
+  "processRules": { "watermarkShow": false }
+}

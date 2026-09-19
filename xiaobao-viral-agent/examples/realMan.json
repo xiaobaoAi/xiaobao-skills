@@ -1,0 +1,13 @@
+{
+  "styleId": "REPLACE_TEMPLATE_ID",
+  "videoUrl": "https://example.com/oral-or-digital-human.mp4",
+  "title": "示例口播标题",
+  "subtitle": [
+    { "text": "大家好，欢迎来到本期内容。" },
+    { "text": "今天分享三个实用技巧。" }
+  ],
+  "materials": [
+    { "type": "image", "fileUrl": "https://example.com/cover.jpg" }
+  ],
+  "processRules": { "watermarkShow": false }
+}

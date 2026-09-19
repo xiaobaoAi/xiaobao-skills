@@ -1,0 +1,9 @@
+{
+  "styleId": "REPLACE_TEMPLATE_ID",
+  "videoUrl": "https://example.com/finished-shoot.mp4",
+  "title": "成片包装示例",
+  "subtitle": [
+    { "text": "从识别结果或口播稿填入字幕分段" }
+  ],
+  "processRules": { "watermarkShow": false }
+}

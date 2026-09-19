@@ -1,0 +1,33 @@
+{
+  "name": "xiaobao-skill",
+  "version": "0.6.0",
+  "description": "销豹 Agent Skills：Router + 理解 + 数字人 + 剪辑",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xiaobaoAi/xiaobao-skills.git"
+  },
+  "keywords": [
+    "agent-skills",
+    "xiaobao",
+    "smartclip",
+    "digital-human",
+    "tts"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test scripts/check.mjs",
+    "sync-shared": "node scripts/sync-shared.mjs"
+  },
+  "files": [
+    "shared/**",
+    "xiaobao-viral-agent/**",
+    "xiaobao-video-agent/**",
+    "xiaobao-digital-human/**",
+    "xiaobao-router/**",
+    "scripts/**",
+    "README.md",
+    "USAGE.md"
+  ]
+}

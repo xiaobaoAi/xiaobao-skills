@@ -1,0 +1,10 @@
+{
+  "styleId": "REPLACE_TEMPLATE_ID",
+  "audioUrl": "https://example.com/voiceover.mp3",
+  "title": "产品种草混剪",
+  "materials": [
+    { "type": "image", "fileUrl": "https://example.com/product-1.jpg" },
+    { "type": "video", "fileUrl": "https://example.com/demo-clip.mp4" }
+  ],
+  "processRules": { "watermarkShow": false }
+}
