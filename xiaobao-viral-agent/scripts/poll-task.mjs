@@ -3,6 +3,7 @@
  * 轮询智能剪辑任务（统一查询接口 doc/46）
  * 用法:
  *   node poll-task.mjs --task-id TASK_ID
+ *   node poll-task.mjs --task-id TASK_ID [--interval 5000] [--attempts 180]
  *   node poll-task.mjs --task-id TASK_ID --once
  *   node poll-task.mjs --mode realMan --task-id TASK_ID   # mode 仅兼容旧调用，查询不需要
  */
@@ -22,8 +23,9 @@ const mode = String(args.mode || '').trim()
 const apiTypeHint = String(
     args['api-type'] || args.apiType || (mode ? modeToApiType(mode) : '') || ''
 ).trim()
-const intervalMs = Math.max(2000, Number(args.interval || 3000) || 3000)
-const maxAttempts = Math.max(1, Number(args.attempts || 60) || 60)
+// 默认约 15 分钟（5s × 180）；混剪经常超过 3 分钟
+const intervalMs = Math.max(2000, Number(args.interval || 5000) || 5000)
+const maxAttempts = Math.max(1, Number(args.attempts || 180) || 180)
 const once = Boolean(args.once)
 
 if (!taskId) {

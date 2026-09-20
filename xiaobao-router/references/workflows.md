@@ -31,9 +31,13 @@
 
 触发：「把这个视频文案改写后，用数字人做成片。」
 
-1. `video-agent` 提取文案
-2. Router 停下，交给 Agent 改写
-3. 带改写文案继续 `speak` + `realMan`
+**推荐（一轮到位，不中途停）：**
+
+1. `video-agent` `extract-copy.mjs` 拿原文案  
+2. Agent **当场改写**（不要问用户代写）  
+3. `run-workflow.mjs --id w3_video_rewrite_digital_clip --url … --rewritten-copy "改写稿"`
+
+**兼容：** 若直接跑 workflow 且未带 `--rewritten-copy`，会返回 `await_agent` + 原文案；Agent 须同一轮改写后立刻重跑，不要当成失败或交给用户。
 
 ## Workflow 4 · `w4_video_subtitle_pack`
 

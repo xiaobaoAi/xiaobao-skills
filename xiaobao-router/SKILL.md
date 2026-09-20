@@ -70,8 +70,29 @@ node scripts/run-workflow.mjs --id w1_video_digital_clip \
 { "success": true, "data": {}, "error": null }
 ```
 
-失败则停止，把 `error.message` 用中文告诉用户。  
-`status: "await_agent"` 表示该你改写文案，不要把内部字段甩给用户。
+失败则停止，把 `error.message` 用中文告诉用户。
+
+### Workflow 3 改写（不要当成卡住）
+
+脚本不会写文案，所以改写必须由你完成。**优先走一轮到位，避免中途停：**
+
+1. 先跑 `xiaobao-video-agent` 的 `extract-copy.mjs`（或 analyze）拿到原文案  
+2. **你自己改写**（同一轮思考里完成，不要把改写作业甩给用户）  
+3. 再跑 workflow，并带上改写结果：
+
+```bash
+node scripts/run-workflow.mjs --id w3_video_rewrite_digital_clip \
+  --url "原视频" --rewritten-copy "改写后的完整口播文案"
+```
+
+若误跑了没带 `--rewritten-copy`，会返回 `status: "await_agent"` 和原文案：
+
+- **同一轮内立刻改写并重跑**（带 `--rewritten-copy`）  
+- 不要对用户说「卡住了 / 请你改写」  
+- 不要把 `await_agent`、`task_id`、下一步命令原文甩给用户  
+- 只有用户明确说「先给我看文案 / 我来改」时，才把文案摘要交给用户确认
+
+对用户只说进度：「正在改写口播文案，随后生成数字人成片。」然后直接继续执行。
 
 ---
 

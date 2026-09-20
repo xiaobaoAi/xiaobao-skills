@@ -18,7 +18,7 @@
 | 把这段文案用数字人做成短视频 | `w2_copy_tts_digital_clip` |
 | 把口播文案配音后用数字人剪成片 | `w2_copy_tts_digital_clip` |
 | 把这段文案改写后用数字人做成短视频 | `w2_copy_tts_digital_clip`（先改写） |
-| 把这个视频文案改写后用数字人做成片 | `w3_video_rewrite_digital_clip` |
+| 把这个视频文案改写后用数字人做成片 | `w3_video_rewrite_digital_clip`（先提取→Agent 改写→带 `--rewritten-copy` 一次跑完） |
 | 给这个视频加字幕和包装 | `w4_video_subtitle_pack` |
 | 给这个视频加字幕 | `w4_video_subtitle_pack` |
 | 帮我做个视频 | 不猜测，请用户补充目标 |

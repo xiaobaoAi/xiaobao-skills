@@ -147,8 +147,23 @@ try {
                 ok({
                     status: 'await_agent',
                     stage: 'rewrite',
+                    agent_must_continue: true,
                     copy,
-                    hint: '请改写文案后，带 --rewritten-copy 继续同一 workflow'
+                    hint: '同一轮内改写下方文案，立刻用 --rewritten-copy 再跑本 workflow；不要停下来问用户，也不要把 await_agent 当成失败。',
+                    next: {
+                        id: 'w3_video_rewrite_digital_clip',
+                        args: [
+                            '--id',
+                            'w3_video_rewrite_digital_clip',
+                            '--url',
+                            url,
+                            ...(person ? ['--person-video', person] : []),
+                            ...(voiceName ? ['--voice-name', voiceName] : []),
+                            ...(styleHint ? ['--style-hint', styleHint] : []),
+                            '--rewritten-copy',
+                            '<改写后的完整口播文案>'
+                        ]
+                    }
                 })
             )
         }

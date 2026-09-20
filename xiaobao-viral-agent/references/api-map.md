@@ -48,7 +48,7 @@ GET /api/smartclip/task_query?task_id=...&key=...
 成功时取 `data.video_url`（或 `data.result.video_url`）。失败看 `fail_reason` / `error.message`。  
 `local_status`：1 处理中，2 完成，3 失败。
 
-建议提交约 2 秒后开始轮询，间隔 2～5 秒；`completed` / `failed` 时停止。
+建议提交约 2 秒后开始轮询，间隔 3～5 秒。默认最多等约 15 分钟（可用 `--interval` / `--attempts` 加长）。`completed` / `failed` 时停止。超时后可用同一 `task_id` 再查，任务往往仍在跑。
 
 ### 旧 query（已弃用）
 

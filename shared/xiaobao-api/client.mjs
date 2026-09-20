@@ -521,7 +521,7 @@ export async function querySmartClipTask(taskId) {
     return assertBizOk(data, '智能剪辑查询')
 }
 
-export async function pollSmartClipTask(taskId, { intervalMs = 3000, attempts = 60 } = {}) {
+export async function pollSmartClipTask(taskId, { intervalMs = 5000, attempts = 180 } = {}) {
     for (let i = 1; i <= attempts; i++) {
         const resp = await querySmartClipTask(taskId)
         const viewed = interpretSmartClipQuery(resp)
@@ -531,5 +531,7 @@ export async function pollSmartClipTask(taskId, { intervalMs = 3000, attempts = 
         console.error(`[poll smartclip ${i}/${attempts}] ${viewed.status || 'pending'}${progress}…`)
         await sleep(intervalMs)
     }
-    throw new Error('智能剪辑等待超时，请稍后用任务号再查')
+    throw new Error(
+        `智能剪辑等待超时（约 ${Math.round((intervalMs * attempts) / 60000)} 分钟）。任务可能仍在处理，请稍后用同一任务号再查：node scripts/poll-task.mjs --task-id ${taskId}`
+    )
 }

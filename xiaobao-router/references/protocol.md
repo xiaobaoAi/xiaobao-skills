@@ -63,16 +63,24 @@ Router 只把 `error.message` 给用户。`code` 供程序分支。
 
 `task_id` 同样只用于内部排障。
 
-## 人工步骤
+## 人工步骤（仅 Workflow 3）
 
-Workflow 3 在改写前返回：
+脚本不能写文案。Agent 应优先：先提取 → 自己改写 → 带 `--rewritten-copy` 一次跑完。
+
+若未带改写稿就跑 workflow，会返回：
 
 ```json
 {
   "success": true,
-  "data": { "status": "await_agent", "stage": "rewrite", "copy": "..." },
+  "data": {
+    "status": "await_agent",
+    "stage": "rewrite",
+    "agent_must_continue": true,
+    "copy": "...",
+    "next": { "id": "w3_video_rewrite_digital_clip", "args": ["..."] }
+  },
   "error": null
 }
 ```
 
-由当前 Agent 改写文案后，用 `--rewritten-copy` 继续。这不是第四个业务 Skill。
+这不是失败。Agent **同一轮**改写文案后，用 `--rewritten-copy` 继续；不要停下来问用户，除非用户要求先审稿。这不是第四个业务 Skill。

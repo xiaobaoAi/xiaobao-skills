@@ -188,6 +188,7 @@ node scripts/list-templates.mjs --scene <scene>
 ## 10. 轮询
 
 - 使用 `poll-task.mjs --task-id ...`，按 [智能剪辑任务查询](https://apis.xiaobao.ink/doc/46) 轮询到 `completed` / `failed`。
+- 默认约等 15 分钟；超时后不要当成任务失败，可稍后用同一任务号再查。超长成片可用 `--attempts 360`（约 30 分钟）。
 - 不要再用各 create 路径的 `action=query`。
 - **对用户：** 可简短提示「正在生成，请稍候」；不要刷中间状态码。
 - **成功：** 只交付可打开的成片链接（及可选的一句话说明）。
