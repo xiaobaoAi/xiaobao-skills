@@ -7,13 +7,16 @@ import {
     parseArgs,
     postJson,
     printJson,
-    whitelistBody
+    whitelistBody,
+    friendlyError
 } from './lib/api.mjs'
+import { validateSmartClipMedia } from './lib/media-rules.mjs'
 
 const args = parseArgs()
 const mode = String(args.mode || '').trim()
 const apiTypeArg = String(args['api-type'] || args.apiType || '').trim()
 const inputPath = String(args.input || args._[0] || '').trim()
+const skipValidate = Boolean(args['skip-validate'])
 
 if (!inputPath) {
     console.error(
@@ -35,6 +38,23 @@ const apiType = apiTypeArg || modeToApiType(mode)
 const path = apiTypeToPath(apiType)
 const payload = whitelistBody(apiType, body)
 
+if (!skipValidate) {
+    const checked = validateSmartClipMedia(apiType, payload)
+    for (const w of checked.warnings) {
+        console.error(`[media warning] ${w}`)
+    }
+    if (!checked.ok) {
+        printJson({
+            ok: false,
+            error: 'media_requirements',
+            message: '素材不符合智能剪辑要求，已阻止提交。请按 references/media-requirements.md 调整后重试。',
+            errors: checked.errors,
+            warnings: checked.warnings
+        })
+        process.exit(1)
+    }
+}
+
 try {
     const resp = await postJson(path, payload, { action: 'create' })
     const taskId = extractTaskId(resp)
@@ -50,6 +70,6 @@ try {
         process.exitCode = 2
     }
 } catch (e) {
-    console.error(e.message || e)
+    console.error(friendlyError(e))
     process.exit(1)
 }

@@ -22,7 +22,7 @@ description: >-
 2. 自动判定任务类型（4 种模式之一）。
 3. 只向用户收集**用户层**信息；内部参数自行映射与填充。
 4. 自动查询并选择模版（不向用户要 styleId）。
-5. 检查素材为公网可访问 URL。
+5. 检查素材是否符合 [media-requirements.md](references/media-requirements.md)（格式、时长、大小、分辨率）；不合规不要创建。
 6. 创建任务 → 轮询终态 → **只返回成片 URL 或可读中文失败说明**。
 7. 对用户隐藏：`styleId`、`apiType`、`task_id`、`voice_id`、`processRules` 等内部字段。
 
@@ -152,10 +152,23 @@ node scripts/list-templates.mjs --scene <scene>
 
 ## 8. 处理素材
 
+**硬性要求见 [references/media-requirements.md](references/media-requirements.md)**（来自 [doc/25](https://apis.xiaobao.ink/doc/25)）。不合规会生成失败，提交前必须核对。
+
+摘要：
+
+- 主视频 / 素材视频：`mp4`/`mov`，H.264 或 HEVC，10–60fps（推荐 25），单边 &lt;2000px
+- `videoUrl`：&lt;5 分钟、&lt;500MB，片中音频可转写
+- 素材：单图按 2 秒计；单视频 ≤60 秒；全部合计 ≤5 分钟；图 jpg/png/webp
+- 旁白/BGM：`mp3`/`wav`/`m4a`，≤120MB，≤5 分钟
+- 封面：`jpg`/`png`，≤10MB，单边 &lt;2000px
+
+步骤：
+
 1. 优先公网 `https` URL。
-2. 本地路径：先 `scripts/upload.mjs --file ./local.mp4`（[doc/49](https://apis.xiaobao.ink/doc/49)）拿到 `url`，再写入 create 参数。免费额度默认 500MB，超额按算力扣费。
-3. 包装任务可先 `recognize.mjs` 生成字幕分段，再写入内部 payload。
-4. 需要配音且无音频时：在内部走 TTS / 克隆音色脚本；向用户只确认「用哪类声音」，不要求 voice_id。
+2. 本地路径：先 `scripts/upload.mjs --file ./local.mp4`（[doc/49](https://apis.xiaobao.ink/doc/49)）。
+3. 提交前：`node scripts/validate-media.mjs --mode <mode> --input payload.json`；或依赖 `create-task.mjs` 内置校验（有 errors 会直接拒绝）。
+4. 包装任务可先 `recognize.mjs` 生成字幕分段，再写入内部 payload。
+5. 需要配音且无音频时：内部走 TTS / 克隆；向用户只确认声音类型，不要求 voice_id。
 
 ---
 
@@ -171,13 +184,15 @@ node scripts/list-templates.mjs --scene <scene>
 
 1. **输入检查：** 用户层最小集是否齐全；凭据是否存在（`setup-credentials.mjs`）。
 2. **模版检查：** 已选中内部 styleId。
-3. **素材检查：** URL 齐全且为 https。
+3. **素材检查：** URL 齐全；符合 `references/media-requirements.md`；`validate-media.mjs` 无 errors。
 4. **组装 payload：** 参考 `examples/*.json` 与 `references/api-map.md`，写入临时 JSON（/tmp），填内部字段。
 5. **create-task：**  
-   `node scripts/create-task.mjs --mode <mode> --input /tmp/payload.json`
+   `node scripts/create-task.mjs --mode <mode> --input /tmp/payload.json`  
+   （默认拦不合格素材；仅排障可用 `--skip-validate`）
 6. **poll-task：**  
    `node scripts/poll-task.mjs --task-id <id>`  
    内部走统一查询 [doc/46](https://apis.xiaobao.ink/doc/46) `/api/smartclip/task_query`，不需要再带 mode。`--mode` 仅兼容旧调用。对用户不展示任务号。
+7. **终态：** 成功 → 成片 URL；失败 → 中文原因（优先对照 media-requirements 调整素材）。
 
 声音、配音、数字人视频不要在本目录另写请求。`tts.mjs` / `clone-voice.mjs` / `create-avatar.mjs` / `query-task.mjs` 只转发到 **xiaobao-digital-human**（同一份 `voices.json`）。字幕识别仍用本目录 `recognize.mjs`。
 
@@ -207,8 +222,9 @@ node scripts/list-templates.mjs --scene <scene>
 | 余额不足 | 余额或点数不足，请充值后再试 |
 | 模版不可用 | 所选风格暂不可用，已尝试更换或请换一种风格描述 |
 | 素材 URL 无效 | 素材链接无法访问，请换成公网可打开的 https 地址 |
+| 素材不合规 | 素材不符合平台要求（格式/时长/大小），请按 media-requirements.md 调整后再生成 |
 | 参数缺失 | 还差××信息（用人话列出） |
-| 任务失败 | 生成失败：……（可读原因）；可建议换模版/检查素材时长 |
+| 任务失败 | 生成失败：……（可读原因）；可建议换模版或按 media-requirements 检查素材 |
 | 超时 | 生成超时，请稍后重试或缩短时长/精简素材 |
 
 禁止把 `api_key` 打进回复。
@@ -253,7 +269,8 @@ node scripts/list-templates.mjs --scene <scene>
 - [ ] 已判定模式（或已向用户确认）
 - [ ] 用户层最小参数已齐，未向用户索要内部 ID
 - [ ] 已 list-templates 并选定模版
-- [ ] 素材均为公网 URL
+- [ ] 素材符合 `references/media-requirements.md`（格式/时长/大小），`validate-media` 无 errors
+- [ ] 素材均为公网 URL（或已 upload）
 - [ ] create → poll 到终态
 - [ ] 回复中只有成片链接或可读错误，无密钥
 
@@ -278,6 +295,7 @@ node scripts/list-templates.mjs --scene <scene>
 
 - `references/user-params.md` — 用户层 vs 内部层
 - `references/modes.md` — 模式判定与最小输入
+- `references/media-requirements.md` — 智能剪辑素材硬性要求（doc/25，提交前必核）
 - `references/workflows.md` — 四类任务工作流
 - `references/errors.md` — 错误转译
 - `references/api-map.md` — 接口字段（仅 Agent 组装 payload 时用）

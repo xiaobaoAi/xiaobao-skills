@@ -22,6 +22,7 @@ import {
     findPublicVoice,
     resolveAvatarUrl
 } from '../xiaobao-digital-human/scripts/lib/public-catalog.mjs'
+import { validateSmartClipMedia } from '../xiaobao-viral-agent/scripts/lib/media-rules.mjs'
 import {
     DEFAULT_NOTIFY_URL,
     resolveNotifyUrl
@@ -218,6 +219,28 @@ test('智能剪辑查询：completed 成功，pending 等待，failed 失败', (
         }).message,
         /素材无效/
     )
+})
+
+test('智能剪辑素材：错误扩展名会拦，合规 URL 可通过', () => {
+    const bad = validateSmartClipMedia('realman_broadcast', {
+        videoUrl: 'https://cdn.example.com/a.webm'
+    })
+    assert.equal(bad.ok, false)
+    assert.match(bad.errors.join(' '), /mp4|mov|不支持/)
+
+    const good = validateSmartClipMedia('broadcast_mixcut', {
+        audioUrl: 'https://cdn.example.com/a.mp3',
+        materials: [
+            { type: 'image', fileUrl: 'https://cdn.example.com/a.jpg' },
+            { type: 'video', fileUrl: 'https://cdn.example.com/b.mp4', duration: 12 }
+        ]
+    })
+    assert.equal(good.ok, true)
+
+    const tooLong = validateSmartClipMedia('broadcast_mixcut', {
+        materials: [{ type: 'video', fileUrl: 'https://cdn.example.com/b.mp4', duration: 90 }]
+    })
+    assert.equal(tooLong.ok, false)
 })
 
 test('公网地址原样返回，不必上传', async () => {

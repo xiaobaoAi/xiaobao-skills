@@ -135,8 +135,9 @@
 
 ```
 理解需求 → 判定模式 → 收集用户层缺口 → list-templates → 选模版
-→ 检查素材 URL → （可选 TTS / 数字人 / 识别字幕）
-→ create-task → poll-task → 只返回成片或中文失败说明
+→ 检查素材 URL 与 [media-requirements.md](media-requirements.md)  
+→ （可选 TTS / 数字人 / 识别字幕）  
+→ validate-media / create-task（默认校验）→ poll-task → 只返回成片或中文失败说明
 ```
 
 编排细节与字段白名单：`api-map.md`。错误话术：`errors.md`。

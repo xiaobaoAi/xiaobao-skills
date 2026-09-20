@@ -93,9 +93,13 @@ GET /api/smartclip/task_query?task_id=...&key=...
 ```json
 [
   { "type": "image", "fileUrl": "https://..." },
-  { "type": "video", "fileUrl": "https://..." }
+  { "type": "video", "fileUrl": "https://...", "duration": 12 }
 ]
 ```
+
+`duration`（秒）可选但推荐：用于提交前校验「单条 ≤60s、合计 ≤5 分钟」。
+
+**媒体硬性要求：** 全文见 [media-requirements.md](media-requirements.md)（[doc/25](https://apis.xiaobao.ink/doc/25)）。`create-task.mjs` 默认会按扩展名/大小拦不合格请求。
 
 ## 业务错误
 
