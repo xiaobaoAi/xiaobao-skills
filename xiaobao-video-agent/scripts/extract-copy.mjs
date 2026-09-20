@@ -44,6 +44,8 @@ function extractTaskId(result) {
 
 function parseText(data) {
     const candidates = [
+        data.resultText,
+        data.result_text,
         data.text,
         data.copy,
         data.copy_text,
@@ -65,10 +67,18 @@ function parseText(data) {
     return ''
 }
 
-function isDone(status, text) {
-    if (text) return true
+function isProcessing(status) {
     const s = String(status || '').toLowerCase()
-    return ['completed', 'success', 'done', 'finish', 'finished', '2'].includes(s)
+    return ['', 'pending', 'processing', 'running', 'queue', 'queued', '0', '1'].includes(s)
+}
+
+function toInsight(data, text) {
+    const insight = emptyVideoInsight()
+    insight.copy = nullIfEmpty(text)
+    insight.title = nullIfEmpty(data.title)
+    insight.description = nullIfEmpty(data.videoDesc || data.video_desc || data.desc)
+    insight.duration = nullIfEmpty(data.duration)
+    return insight
 }
 
 function isFail(status, msg) {
@@ -92,6 +102,12 @@ try {
 
     if (taskId) {
         result = await queryOnce(taskId)
+        const data = unwrapData(result)
+        const text = parseText(data) || parseText(result)
+        if (text) {
+            printJson({ ok: true, insight: toInsight(data, text), task_id: taskId })
+            process.exit(0)
+        }
     } else {
         if (!url) {
             console.error('用法: node extract-copy.mjs --url "视频链接"')
@@ -101,14 +117,13 @@ try {
         taskId = extractTaskId(result)
         const data0 = unwrapData(result)
         const text0 = parseText(data0) || parseText(result)
-        if (isDone(data0.status || result.status, text0)) {
-            const insight = emptyVideoInsight()
-            insight.copy = nullIfEmpty(text0)
-            insight.title = nullIfEmpty(data0.title)
-            insight.description = nullIfEmpty(data0.video_desc || data0.desc)
-            insight.duration = nullIfEmpty(data0.duration)
-            printJson({ ok: true, insight, task_id: taskId || null })
+        const status0 = data0.status || result.status
+        if (text0) {
+            printJson({ ok: true, insight: toInsight(data0, text0), task_id: taskId || null })
             process.exit(0)
+        }
+        if (!isProcessing(status0)) {
+            throw new Error(result?.msg || result?.message || '文案提取未返回文案')
         }
         if (!taskId) {
             throw new Error(
@@ -124,17 +139,12 @@ try {
         const status = data.status || result.status
         const msg = result.msg || result.message || data.message || ''
 
-        if (isFail(status, msg) && !text) {
-            throw new Error(msg || '文案提取失败')
-        }
-        if (isDone(status, text)) {
-            const insight = emptyVideoInsight()
-            insight.copy = nullIfEmpty(text)
-            insight.title = nullIfEmpty(data.title)
-            insight.description = nullIfEmpty(data.video_desc || data.desc)
-            insight.duration = nullIfEmpty(data.duration)
-            printJson({ ok: true, insight, task_id: taskId, attempts: i })
+        if (text) {
+            printJson({ ok: true, insight: toInsight(data, text), task_id: taskId, attempts: i })
             process.exit(0)
+        }
+        if (isFail(status, msg) || !isProcessing(status)) {
+            throw new Error(msg || '文案提取失败')
         }
         console.error(`[extract-copy ${i}/${maxAttempts}] ${status || 'processing'}…`)
         await sleep(intervalMs)

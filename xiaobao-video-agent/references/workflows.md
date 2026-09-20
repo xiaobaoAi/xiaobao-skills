@@ -33,7 +33,7 @@ node scripts/parse-video.mjs --url "$URL"
 
 **输入：** 分享链接或视频 URL  
 
-**自动处理：** `extract-copy.mjs` → 提交 `/api/video/text` → 轮询  
+**自动处理：** `extract-copy.mjs` 提交 `/api/video/text`。响应里已有 `resultText` 就直接返回；只有还在处理时才按 `taskId` 再查。  
 
 **输出：** `copy`（及可能的 title/duration）  
 

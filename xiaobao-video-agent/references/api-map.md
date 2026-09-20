@@ -24,8 +24,9 @@ Base：`https://apis.xiaobao.ink`
 ### /api/video/text
 
 - 提交：`content=<链接>`
-- 查询：`taskId=<id>`
-- 异步：提交后轮询直至文案或失败
+- 当次响应里已有 `data.resultText` 时直接读取，不必再查
+- 只有还在处理中、且返回了 `taskId` 时，才用 `taskId` 再查
+- 文案字段是 `resultText`，描述是 `videoDesc`
 
 ### recognition
 
