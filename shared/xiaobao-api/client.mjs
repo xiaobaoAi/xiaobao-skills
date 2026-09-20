@@ -262,42 +262,274 @@ export function isTerminalFail(status, resp) {
     return false
 }
 
-export async function pollAihumanTask(taskId, type, { intervalMs = 4000, attempts = 60 } = {}) {
-    for (let i = 1; i <= attempts; i++) {
-        const resp = await queryAihumanTask(taskId, type)
-        const status = extractStatus(resp)
-        const url = extractResultUrl(resp)
-        const voiceId = extractVoiceId(resp)
+export async function pollAihumanTask(taskId, type, opts = {}) {
+    const t = String(type || 'video').toLowerCase()
+    if (t === 'voice' || t === 'clone' || t === 'clonevoice') {
+        throw new Error('声音克隆请用 pollCloneVoiceTask（doc/47），不要用 /api/v1/task/query')
+    }
+    if (t === 'tts') {
+        throw new Error('语音合成请用 pollTtsTask（doc/45），不要用 /api/v1/task/query')
+    }
+    if (t === 'video' || t === 'avatar' || t === 'create') {
+        const done = await pollCreateTask(taskId, opts)
+        return {
+            ok: true,
+            task_id: taskId,
+            type: t,
+            status: 1,
+            result_url: done.video_url,
+            voice_id: null,
+            response: done.response,
+            attempts: done.attempts
+        }
+    }
+    throw new Error(`未知数字人任务类型: ${type}`)
+}
 
-        if (type === 'voice' && voiceId) {
-            return {
-                ok: true,
-                task_id: taskId,
-                type,
-                status,
-                result_url: url || null,
-                voice_id: voiceId,
-                response: resp,
-                attempts: i
-            }
+/**
+ * 语音合成查询。status：0 处理中，1 成功，2 失败。
+ * 文档：https://apis.xiaobao.ink/doc/45
+ */
+export function interpretTtsQuery(resp) {
+    const data = resp?.data && typeof resp.data === 'object' ? resp.data : {}
+    const status = Number(data.status)
+    if (status === 1) {
+        const audioUrl = String(data.audio_url || '').trim()
+        if (!audioUrl) {
+            return { state: 'fail', message: '合成成功但未返回音频地址' }
         }
-        if (isTerminalSuccess(status, url)) {
-            return {
-                ok: true,
-                task_id: taskId,
-                type,
-                status,
-                result_url: url || null,
-                voice_id: voiceId || null,
-                response: resp,
-                attempts: i
-            }
+        return {
+            state: 'done',
+            task_id: String(data.task_id || '').trim(),
+            audio_url: audioUrl,
+            srt_url: String(data.srt_url || '').trim() || null,
+            audio_duration: Number(data.audio_duration) || 0
         }
-        if (isTerminalFail(status, resp)) {
-            throw new Error(formatApiError(resp, '任务失败'))
-        }
-        console.error(`[poll ${type} ${i}/${attempts}] status=${status ?? 'pending'}…`)
+    }
+    if (status === 2) {
+        return { state: 'fail', message: String(data.fail_reason || resp?.msg || '语音合成失败') }
+    }
+    return { state: 'pending' }
+}
+
+/** GET /api/aihuman/tts_query?task_id&key */
+export async function queryTtsTask(taskId) {
+    const { base_url, api_key } = loadCredentials()
+    const url = new URL('/api/aihuman/tts_query', base_url)
+    url.searchParams.set('task_id', String(taskId))
+    url.searchParams.set('key', api_key)
+    const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } })
+    const text = await res.text()
+    let data
+    try {
+        data = JSON.parse(text)
+    } catch {
+        data = { raw: text }
+    }
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${formatApiError(data, text || res.statusText)}`)
+    }
+    return assertBizOk(data, '语音合成查询')
+}
+
+export async function pollTtsTask(taskId, { intervalMs = 4000, attempts = 60 } = {}) {
+    for (let i = 1; i <= attempts; i++) {
+        const resp = await queryTtsTask(taskId)
+        const viewed = interpretTtsQuery(resp)
+        if (viewed.state === 'done') return { ...viewed, attempts: i, response: resp }
+        if (viewed.state === 'fail') throw new Error(viewed.message)
+        console.error(`[poll tts ${i}/${attempts}] status=pending…`)
         await sleep(intervalMs)
     }
-    throw new Error('任务等待超时，请稍后重试')
+    throw new Error('语音合成等待超时，请稍后用任务号再查')
+}
+
+/**
+ * 声音克隆查询。status：0 处理中，1 成功，2 失败。
+ * 文档：https://apis.xiaobao.ink/doc/47
+ */
+export function interpretCloneVoiceQuery(resp) {
+    const data = resp?.data && typeof resp.data === 'object' ? resp.data : {}
+    const status = Number(data.status)
+    if (status === 1) {
+        const voiceId = String(data.voice_id || '').trim()
+        if (!voiceId) {
+            return { state: 'fail', message: '克隆成功但未返回音色' }
+        }
+        return {
+            state: 'done',
+            task_id: String(data.task_id || '').trim(),
+            voice_id: voiceId,
+            name: String(data.name || '').trim() || null,
+            lang: String(data.lang || '').trim() || null,
+            demo_url: String(data.demo_url || '').trim() || null
+        }
+    }
+    if (status === 2) {
+        return { state: 'fail', message: String(data.fail_reason || resp?.msg || '声音克隆失败') }
+    }
+    return { state: 'pending' }
+}
+
+/** GET /api/aihuman/clonevoice_query?task_id&key */
+export async function queryCloneVoiceTask(taskId) {
+    const { base_url, api_key } = loadCredentials()
+    const url = new URL('/api/aihuman/clonevoice_query', base_url)
+    url.searchParams.set('task_id', String(taskId))
+    url.searchParams.set('key', api_key)
+    const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } })
+    const text = await res.text()
+    let data
+    try {
+        data = JSON.parse(text)
+    } catch {
+        data = { raw: text }
+    }
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${formatApiError(data, text || res.statusText)}`)
+    }
+    return assertBizOk(data, '声音克隆查询')
+}
+
+export async function pollCloneVoiceTask(taskId, { intervalMs = 4000, attempts = 60 } = {}) {
+    for (let i = 1; i <= attempts; i++) {
+        const resp = await queryCloneVoiceTask(taskId)
+        const viewed = interpretCloneVoiceQuery(resp)
+        if (viewed.state === 'done') return { ...viewed, attempts: i, response: resp }
+        if (viewed.state === 'fail') throw new Error(viewed.message)
+        console.error(`[poll clonevoice ${i}/${attempts}] status=pending…`)
+        await sleep(intervalMs)
+    }
+    throw new Error('声音克隆等待超时，请稍后用任务号再查')
+}
+
+/**
+ * 数字人高清合成查询。status：0 处理中，1 成功，2 失败。
+ * 文档：https://apis.xiaobao.ink/doc/48
+ */
+export function interpretCreateQuery(resp) {
+    const data = resp?.data && typeof resp.data === 'object' ? resp.data : {}
+    const status = Number(data.status)
+    if (status === 1) {
+        const videoUrl = String(data.video_url || '').trim()
+        if (!videoUrl) {
+            return { state: 'fail', message: '合成成功但未返回视频地址' }
+        }
+        return {
+            state: 'done',
+            task_id: String(data.task_id || '').trim(),
+            video_url: videoUrl,
+            video_time: Number(data.video_time) || 0,
+            video_size: Number(data.video_size) || 0
+        }
+    }
+    if (status === 2) {
+        return { state: 'fail', message: String(data.fail_reason || resp?.msg || '数字人合成失败') }
+    }
+    return { state: 'pending' }
+}
+
+/** GET /api/aihuman/create_query?task_id&key */
+export async function queryCreateTask(taskId) {
+    const { base_url, api_key } = loadCredentials()
+    const url = new URL('/api/aihuman/create_query', base_url)
+    url.searchParams.set('task_id', String(taskId))
+    url.searchParams.set('key', api_key)
+    const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } })
+    const text = await res.text()
+    let data
+    try {
+        data = JSON.parse(text)
+    } catch {
+        data = { raw: text }
+    }
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${formatApiError(data, text || res.statusText)}`)
+    }
+    return assertBizOk(data, '数字人合成查询')
+}
+
+export async function pollCreateTask(taskId, { intervalMs = 5000, attempts = 120 } = {}) {
+    for (let i = 1; i <= attempts; i++) {
+        const resp = await queryCreateTask(taskId)
+        const viewed = interpretCreateQuery(resp)
+        if (viewed.state === 'done') return { ...viewed, attempts: i, response: resp }
+        if (viewed.state === 'fail') throw new Error(viewed.message)
+        console.error(`[poll create ${i}/${attempts}] status=pending…`)
+        await sleep(intervalMs)
+    }
+    throw new Error('数字人合成等待超时，请稍后用任务号再查')
+}
+
+/**
+ * 智能剪辑任务查询。status：pending|processing|completed|failed。
+ * 文档：https://apis.xiaobao.ink/doc/46
+ */
+export function interpretSmartClipQuery(resp) {
+    const data = resp?.data && typeof resp.data === 'object' ? resp.data : resp || {}
+    const status = String(data.status || '').toLowerCase()
+    const local = Number(data.local_status)
+    const videoUrl = String(
+        data.video_url || data.result?.video_url || data.result_url || data.url || ''
+    ).trim()
+
+    if (status === 'completed' || local === 2 || videoUrl) {
+        if (!videoUrl) {
+            return { state: 'fail', message: '剪辑完成但未返回成片地址' }
+        }
+        return {
+            state: 'done',
+            task_id: String(data.task_id || '').trim(),
+            api_type: String(data.api_type || '').trim() || null,
+            status: status || 'completed',
+            progress: Number(data.progress) || 100,
+            video_url: videoUrl,
+            cover_url: String(data.result?.cover_url || data.cover_url || '').trim() || null,
+            fail_reason: null
+        }
+    }
+    if (status === 'failed' || local === 3) {
+        const message =
+            String(data.fail_reason || data.error?.message || resp?.msg || '智能剪辑失败').trim() ||
+            '智能剪辑失败'
+        return { state: 'fail', message, status: status || 'failed' }
+    }
+    return {
+        state: 'pending',
+        status: status || 'pending',
+        progress: Number(data.progress) || 0
+    }
+}
+
+/** GET /api/smartclip/task_query?task_id&key */
+export async function querySmartClipTask(taskId) {
+    const { base_url, api_key } = loadCredentials()
+    const url = new URL('/api/smartclip/task_query', base_url)
+    url.searchParams.set('task_id', String(taskId))
+    url.searchParams.set('key', api_key)
+    const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } })
+    const text = await res.text()
+    let data
+    try {
+        data = JSON.parse(text)
+    } catch {
+        data = { raw: text }
+    }
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${formatApiError(data, text || res.statusText)}`)
+    }
+    return assertBizOk(data, '智能剪辑查询')
+}
+
+export async function pollSmartClipTask(taskId, { intervalMs = 3000, attempts = 60 } = {}) {
+    for (let i = 1; i <= attempts; i++) {
+        const resp = await querySmartClipTask(taskId)
+        const viewed = interpretSmartClipQuery(resp)
+        if (viewed.state === 'done') return { ...viewed, attempts: i, response: resp }
+        if (viewed.state === 'fail') throw new Error(viewed.message)
+        const progress = viewed.progress != null ? ` ${viewed.progress}%` : ''
+        console.error(`[poll smartclip ${i}/${attempts}] ${viewed.status || 'pending'}${progress}…`)
+        await sleep(intervalMs)
+    }
+    throw new Error('智能剪辑等待超时，请稍后用任务号再查')
 }

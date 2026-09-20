@@ -31,7 +31,7 @@
 
 - 可选：调用 **xiaobao-digital-human** 的 `tts.mjs` / `create-avatar.mjs`（本目录同名文件只转发）
 - `create-task.mjs --mode realMan`
-- `poll-task.mjs --mode realMan`
+- `poll-task.mjs --task-id <id>`（统一 [doc/46](https://apis.xiaobao.ink/doc/46) 查询）
 
 ### 输出
 
@@ -63,7 +63,7 @@
 
 - 可选：调用 **xiaobao-digital-human** 的 `clone-voice.mjs` / `tts.mjs`（不要在剪辑 Skill 里另记音色）
 - `create-task.mjs --mode oralMixCutting`
-- `poll-task.mjs --mode oralMixCutting`
+- `poll-task.mjs --task-id <id>`
 
 ### 输出
 
@@ -93,7 +93,7 @@
 ### API 调用（内部）
 
 - `create-task.mjs --mode newsMixCutting`
-- `poll-task.mjs --mode newsMixCutting`
+- `poll-task.mjs --task-id <id>`
 
 ### 输出
 
@@ -123,7 +123,7 @@
 
 - 可选：`recognize.mjs`
 - `create-task.mjs --mode videoPackaging`
-- `poll-task.mjs --mode videoPackaging`
+- `poll-task.mjs --task-id <id>`
 
 ### 输出
 

@@ -1,95 +1,67 @@
 #!/usr/bin/env node
+/**
+ * 轮询智能剪辑任务（统一查询接口 doc/46）
+ * 用法:
+ *   node poll-task.mjs --task-id TASK_ID
+ *   node poll-task.mjs --task-id TASK_ID --once
+ *   node poll-task.mjs --mode realMan --task-id TASK_ID   # mode 仅兼容旧调用，查询不需要
+ */
 import {
-    apiTypeToPath,
-    extractResultUrl,
-    extractStatus,
-    formatApiError,
     modeToApiType,
     parseArgs,
-    postJson,
-    printJson
+    printJson,
+    pollSmartClipTask,
+    querySmartClipTask,
+    interpretSmartClipQuery,
+    friendlyError
 } from './lib/api.mjs'
 
 const args = parseArgs()
 const taskId = String(args['task-id'] || args.taskId || args._[0] || '').trim()
 const mode = String(args.mode || '').trim()
-const apiType = String(args['api-type'] || args.apiType || (mode ? modeToApiType(mode) : '') || 'realman_broadcast').trim()
-const intervalMs = Math.max(2000, Number(args.interval || 5000) || 5000)
+const apiTypeHint = String(
+    args['api-type'] || args.apiType || (mode ? modeToApiType(mode) : '') || ''
+).trim()
+const intervalMs = Math.max(2000, Number(args.interval || 3000) || 3000)
 const maxAttempts = Math.max(1, Number(args.attempts || 60) || 60)
 const once = Boolean(args.once)
 
 if (!taskId) {
-    console.error('用法: node poll-task.mjs --api-type realman_broadcast --task-id TASK_ID')
+    console.error('用法: node poll-task.mjs --task-id TASK_ID')
     process.exit(1)
-}
-
-const path = apiTypeToPath(apiType)
-
-function isTerminalSuccess(status, url) {
-    if (url) return true
-    const s = String(status ?? '').toLowerCase()
-    return s === '2' || s === 'success' || s === 'succeed' || s === 'done' || s === 'completed'
-}
-
-function isTerminalFail(status, resp) {
-    const s = String(status ?? '').toLowerCase()
-    if (s === '3' || s === 'fail' || s === 'failed' || s === 'error') return true
-    const code = resp?.code
-    if (code === 0 && resp?.msg && /失败|错误|fail/i.test(String(resp.msg)) && !resp?.data) {
-        return true
-    }
-    return false
-}
-
-async function tick() {
-    const resp = await postJson(path, { task_id: taskId }, { action: 'query' })
-    const status = extractStatus(resp)
-    const url = extractResultUrl(resp)
-    return { resp, status, url }
 }
 
 try {
     if (once) {
-        const { resp, status, url } = await tick()
-        printJson({ ok: true, task_id: taskId, apiType, status, result_url: url || null, response: resp })
-        process.exit(0)
+        const resp = await querySmartClipTask(taskId)
+        const viewed = interpretSmartClipQuery(resp)
+        printJson({
+            ok: viewed.state !== 'fail',
+            task_id: taskId,
+            apiType: viewed.api_type || apiTypeHint || null,
+            status: viewed.status || null,
+            progress: viewed.progress ?? null,
+            result_url: viewed.video_url || null,
+            error: viewed.state === 'fail' ? viewed.message : null,
+            response: resp
+        })
+        process.exit(viewed.state === 'fail' ? 1 : 0)
     }
 
-    for (let i = 1; i <= maxAttempts; i++) {
-        const { resp, status, url } = await tick()
-        const failMsg = formatApiError(resp, '')
-        if (isTerminalSuccess(status, url)) {
-            printJson({
-                ok: true,
-                done: true,
-                task_id: taskId,
-                apiType,
-                status,
-                result_url: url || null,
-                attempts: i,
-                response: resp
-            })
-            process.exit(0)
-        }
-        if (isTerminalFail(status, resp)) {
-            printJson({
-                ok: false,
-                done: true,
-                task_id: taskId,
-                apiType,
-                status,
-                error: failMsg || '任务失败',
-                attempts: i,
-                response: resp
-            })
-            process.exit(1)
-        }
-        console.error(`[poll ${i}/${maxAttempts}] status=${status ?? 'pending'} …`)
-        await new Promise((r) => setTimeout(r, intervalMs))
-    }
-    console.error(`超时：已轮询 ${maxAttempts} 次仍未终态`)
-    process.exit(1)
+    const done = await pollSmartClipTask(taskId, { intervalMs, attempts: maxAttempts })
+    printJson({
+        ok: true,
+        done: true,
+        task_id: done.task_id || taskId,
+        apiType: done.api_type || apiTypeHint || null,
+        status: done.status,
+        progress: done.progress,
+        result_url: done.video_url,
+        cover_url: done.cover_url,
+        attempts: done.attempts,
+        response: done.response
+    })
 } catch (e) {
-    console.error(e.message || e)
+    console.error(friendlyError(e))
     process.exit(1)
 }

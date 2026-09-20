@@ -176,8 +176,8 @@ node scripts/list-templates.mjs --scene <scene>
 5. **create-task：**  
    `node scripts/create-task.mjs --mode <mode> --input /tmp/payload.json`
 6. **poll-task：**  
-   `node scripts/poll-task.mjs --mode <mode> --task-id <id>`  
-   （或等价 `--api-type`；对用户不展示这些参数。）
+   `node scripts/poll-task.mjs --task-id <id>`  
+   内部走统一查询 [doc/46](https://apis.xiaobao.ink/doc/46) `/api/smartclip/task_query`，不需要再带 mode。`--mode` 仅兼容旧调用。对用户不展示任务号。
 
 声音、配音、数字人视频不要在本目录另写请求。`tts.mjs` / `clone-voice.mjs` / `create-avatar.mjs` / `query-task.mjs` 只转发到 **xiaobao-digital-human**（同一份 `voices.json`）。字幕识别仍用本目录 `recognize.mjs`。
 
@@ -187,7 +187,8 @@ node scripts/list-templates.mjs --scene <scene>
 
 ## 10. 轮询
 
-- 使用 `poll-task.mjs` 直到成功或失败/超时。
+- 使用 `poll-task.mjs --task-id ...`，按 [智能剪辑任务查询](https://apis.xiaobao.ink/doc/46) 轮询到 `completed` / `failed`。
+- 不要再用各 create 路径的 `action=query`。
 - **对用户：** 可简短提示「正在生成，请稍候」；不要刷中间状态码。
 - **成功：** 只交付可打开的成片链接（及可选的一句话说明）。
 - **失败：** 用 `references/errors.md` 转成中文说明与建议，不粘贴原始堆栈或内部字段名（除非排障且用户明确要求）。

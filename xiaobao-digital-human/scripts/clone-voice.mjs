@@ -11,10 +11,10 @@ import {
     postJson,
     printJson,
     extractTaskId,
-    pollAihumanTask,
+    pollCloneVoiceTask,
     friendlyError
 } from './vendor/xiaobao-api/client.mjs'
-import { upsertVoice } from './vendor/xiaobao-api/credentials.mjs'
+import { upsertVoice, resolveNotifyUrl } from './vendor/xiaobao-api/credentials.mjs'
 
 const args = parseArgs()
 let body = {}
@@ -35,30 +35,33 @@ if (args.input) {
         name: displayName,
         lang: String(args.lang || 'zh-cn')
     }
-    const notify = String(args.notify || '').trim()
-    if (notify) body.notify = notify
 }
+
+body.notify = resolveNotifyUrl(args.notify || body.notify)
 
 try {
     const resp = await postJson('/api/aihuman/clonevoice', body)
     const taskId = extractTaskId(resp)
     if (!taskId) throw new Error('克隆任务未返回编号，请稍后重试')
 
-    const done = await pollAihumanTask(taskId, 'voice')
+    const done = await pollCloneVoiceTask(taskId)
     const voiceId = done.voice_id
     if (!voiceId) throw new Error('克隆完成但未拿到音色，请换一段清晰人声样本重试')
+
+    if (done.name) displayName = done.name
 
     const saved = upsertVoice({
         name: displayName,
         voice_id: voiceId,
         voice_type: 'custom',
-        sample_url: body.voice_url || ''
+        sample_url: body.voice_url || done.demo_url || ''
     })
 
     printJson({
         ok: true,
         voice_name: saved.name,
         sample_url: saved.sample_url || null,
+        demo_url: done.demo_url || null,
         // 内部字段仅供排障；Agent 对用户应只说「音色名称」
         _internal: { voice_id: voiceId, task_id: taskId }
     })

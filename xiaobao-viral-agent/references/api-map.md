@@ -7,9 +7,10 @@ Base URL 默认 `https://apis.xiaobao.ink`。鉴权：JSON body 内字段 `key`�
 | 能力 | Method | Path | Query | 文档 |
 |------|--------|------|-------|------|
 | 模版列表 | POST | `/api/smartclip/template` | — | [doc/23](https://apis.xiaobao.ink/doc/23) |
-| 真人口播 create/query | POST | `/api/smartclip/realman_broadcast` | `action=create\|query` | [doc/25](https://apis.xiaobao.ink/doc/25) |
-| 素材/口播混剪 create/query | POST | `/api/smartclip/broadcast_mixcut` | `action=create\|query` | 开放平台 smartclip |
-| 新闻混剪 create/query | POST | `/api/smartclip/news_mixcut` | `action=create\|query` | 开放平台 smartclip |
+| 真人口播 create | POST | `/api/smartclip/realman_broadcast` | `action=create` | [doc/25](https://apis.xiaobao.ink/doc/25) |
+| 素材/口播混剪 create | POST | `/api/smartclip/broadcast_mixcut` | `action=create` | 开放平台 smartclip |
+| 新闻混剪 create | POST | `/api/smartclip/news_mixcut` | `action=create` | 开放平台 smartclip |
+| 智能剪辑任务查询 | GET/POST | `/api/smartclip/task_query` | `task_id` + `key` | [doc/46](https://apis.xiaobao.ink/doc/46) |
 
 ### 模版列表 body
 
@@ -33,24 +34,36 @@ Base URL 默认 `https://apis.xiaobao.ink`。鉴权：JSON body 内字段 `key`�
 
 与混剪类似，使用 `title` + `materials` + `styleId`；不要传 `subtitle`。
 
-### query body
+### 任务查询（统一）
 
-```json
-{ "key": "...", "task_id": "..." }
+创建后不要再对 create 路径带 `action=query`。用 [doc/46](https://apis.xiaobao.ink/doc/46)：
+
+```
+GET /api/smartclip/task_query?task_id=...&key=...
 ```
 
-Query：`?action=query`
+也可用 POST JSON / 表单传 `task_id`。查询不扣费。
 
-成功时从响应中取成片 URL（常见字段：`data.video_url` / `data.url` / `data.result_url`，以实际返回为准）。
+`data.status`：`pending` | `processing` | `completed` | `failed`  
+成功时取 `data.video_url`（或 `data.result.video_url`）。失败看 `fail_reason` / `error.message`。  
+`local_status`：1 处理中，2 完成，3 失败。
+
+建议提交约 2 秒后开始轮询，间隔 2～5 秒；`completed` / `failed` 时停止。
+
+### 旧 query（已弃用）
+
+各 create 路径的 `?action=query` 仅兼容旧调用，Agent 新流程统一走 `task_query`。
 
 ## 数字人 / 语音（编排辅助）
 
 | 能力 | Path | 鉴权 | 文档 |
 |------|------|------|------|
 | 声音克隆 | `/api/aihuman/clonevoice` | body `key` | [doc/9](https://apis.xiaobao.ink/doc/9) |
+| 声音克隆查询 | `GET /api/aihuman/clonevoice_query` | query `key` | [doc/47](https://apis.xiaobao.ink/doc/47) |
 | TTS | `/api/aihuman/tts` | body `key` | [doc/10](https://apis.xiaobao.ink/doc/10) |
+| 语音合成查询 | `GET /api/aihuman/tts_query` | query `key` | [doc/45](https://apis.xiaobao.ink/doc/45) |
 | 数字人合成 | `/api/aihuman/create` | body `key` | [doc/11](https://apis.xiaobao.ink/doc/11) |
-| 任务查询 | `GET /api/v1/task/query?task_id=&type=` | Header `Authorization: <api_key>` | type=`voice`/`video`/`avatar` |
+| 数字人合成查询 | `GET /api/aihuman/create_query` | query `key` | [doc/48](https://apis.xiaobao.ink/doc/48) |
 | 语音转字幕 | `/api/xiaobao/recognition` | body `key` + `fileUrl` | [doc/42](https://apis.xiaobao.ink/doc/42) |
 
 ### TTS body
@@ -65,12 +78,14 @@ Query：`?action=query`
 
 ## 模式 → apiType
 
-| mode | create/query apiType |
-|------|----------------------|
+| mode | create apiType |
+|------|----------------|
 | `realMan` | `realman_broadcast` |
 | `videoPackaging` | `realman_broadcast` |
 | `oralMixCutting` | `broadcast_mixcut` |
 | `newsMixCutting` | `news_mixcut` |
+
+查询统一：`/api/smartclip/task_query`（与 mode 无关，只需 task_id）。
 
 ## materials 结构
 

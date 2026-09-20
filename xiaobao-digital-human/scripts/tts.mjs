@@ -12,14 +12,16 @@ import {
     postJson,
     printJson,
     extractTaskId,
-    pollAihumanTask,
+    pollTtsTask,
+    pollCloneVoiceTask,
     friendlyError
 } from './vendor/xiaobao-api/client.mjs'
 import {
     findVoiceByName,
     loadCredentials,
     upsertVoice,
-    saveCredentials
+    saveCredentials,
+    resolveNotifyUrl
 } from './vendor/xiaobao-api/credentials.mjs'
 import { defaultPublicVoice, findPublicVoice, publicVoiceNames } from './lib/public-catalog.mjs'
 
@@ -85,11 +87,12 @@ try {
         const cloneResp = await postJson('/api/aihuman/clonevoice', {
             voice_url: sample,
             name,
-            lang: String(args.lang || body.lang || 'zh-cn')
+            lang: String(args.lang || body.lang || 'zh-cn'),
+            notify: resolveNotifyUrl(args.notify || body.notify)
         })
         const cloneTask = extractTaskId(cloneResp)
         if (!cloneTask) throw new Error('克隆未返回任务号')
-        const cloned = await pollAihumanTask(cloneTask, 'voice')
+        const cloned = await pollCloneVoiceTask(cloneTask)
         if (!cloned.voice_id) throw new Error('克隆未得到音色')
         upsertVoice({ name, voice_id: cloned.voice_id, voice_type: 'custom', sample_url: sample })
         body.voice_id = cloned.voice_id
@@ -106,16 +109,15 @@ try {
         volume: Number(args.volume || body.volume || 1),
         lang: String(args.lang || body.lang || 'zh-cn')
     }
-    const notify = String(args.notify || body.notify || '').trim()
+    const notify = resolveNotifyUrl(args.notify || body.notify)
     if (notify) payload.notify = notify
 
     const resp = await postJson('/api/aihuman/tts', payload)
     const taskId = extractTaskId(resp)
     if (!taskId) throw new Error('语音合成未返回任务号')
 
-    const done = await pollAihumanTask(taskId, 'voice')
-    const audioUrl = done.result_url
-    if (!audioUrl) throw new Error('合成完成但未拿到音频地址')
+    const done = await pollTtsTask(taskId)
+    const audioUrl = done.audio_url
 
     // 记住默认音色（可选）
     if (args['set-default']) {
@@ -131,6 +133,7 @@ try {
     printJson({
         ok: true,
         audio_url: audioUrl,
+        srt_url: done.srt_url,
         voice_name: voice.voice_name,
         _internal: { task_id: taskId, voice_id: voice.voice_id }
     })

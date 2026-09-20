@@ -11,9 +11,10 @@ import {
     postJson,
     printJson,
     extractTaskId,
-    pollAihumanTask,
+    pollCreateTask,
     friendlyError
 } from './vendor/xiaobao-api/client.mjs'
+import { resolveNotifyUrl } from './vendor/xiaobao-api/credentials.mjs'
 
 const args = parseArgs()
 let body = {}
@@ -33,25 +34,25 @@ if (args.input) {
         process.exit(1)
     }
     body = { video_url: videoUrl, audio_url: audioUrl }
-    const notify = String(args.notify || '').trim()
-    if (notify) body.notify = notify
 }
+
+body.notify = resolveNotifyUrl(args.notify || body.notify)
 
 try {
     const resp = await postJson('/api/aihuman/create', {
         video_url: body.video_url,
         audio_url: body.audio_url,
-        ...(body.notify ? { notify: body.notify } : {})
+        notify: body.notify
     })
     const taskId = extractTaskId(resp)
     if (!taskId) throw new Error('数字人任务未返回编号')
 
-    const done = await pollAihumanTask(taskId, 'video')
-    if (!done.result_url) throw new Error('生成完成但未拿到视频地址')
+    const done = await pollCreateTask(taskId)
+    if (!done.video_url) throw new Error('生成完成但未拿到视频地址')
 
     printJson({
         ok: true,
-        video_url: done.result_url,
+        video_url: done.video_url,
         _internal: { task_id: taskId }
     })
 } catch (e) {

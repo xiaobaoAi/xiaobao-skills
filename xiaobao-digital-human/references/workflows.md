@@ -6,7 +6,7 @@
 
 **输入：** 清晰人声样本公网 URL、给音色起的名字  
 
-**步骤：** `clone-voice.mjs` → 轮询 voice 任务 → 写入 `voices.json`  
+**步骤：** `clone-voice.mjs` 提交后用 [声音克隆查询](https://apis.xiaobao.ink/doc/47) 按任务号轮询到 `voice_id`，再写入 `voices.json`。不要用数字人任务查询接口查克隆。  
 
 **输出给用户：** 「已保存音色：{名称}」（不展示 voice_id）
 
@@ -18,7 +18,7 @@
 
 **输入：** 文案；音色名可省略（默认热情娜娜）。公共音色直接用，不要先克隆。  
 
-**步骤：** `tts.mjs` → 轮询 → **audio_url**  
+**步骤：** `tts.mjs` 提交后用 [语音合成查询](https://apis.xiaobao.ink/doc/45) 按任务号轮询，直到 `audio_url`。不要用数字人任务查询接口查配音。  
 
 **错误：** 名字对不上时列出公共音色让用户选；只有用户要自己的声音才要样本。格式不对则换 mp3/wav
 
@@ -32,8 +32,8 @@
 
 **步骤：**
 
-- 已有音频：`create-avatar.mjs`
-- 只有文案：`speak.mjs`（内部 TTS → create）
+- 已有音频：`create-avatar.mjs` 提交后用 [数字人合成查询](https://apis.xiaobao.ink/doc/48) 轮询到 `video_url`
+- 只有文案：`speak.mjs`（内部 TTS → create，成片同样走该查询）
 
 **输出：** **video_url**
 

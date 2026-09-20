@@ -20,6 +20,8 @@ description: >-
 凭据共用：`~/.xiaobao-skills/credentials.json`  
 用户自己克隆的音色：`~/.xiaobao-skills/voices.json`（按名称查找，勿向用户展示 id）
 
+创建配音 / 克隆 / 数字人时会自动带 `notify`（默认 `https://xiaobao.ink/api/digitalhuman/notifyTTS`）。只为过平台校验；结果仍用查询接口轮询，不依赖回调内容。可用 `--notify`、凭据里的 `notify_url` 或环境变量 `XIAOBAO_NOTIFY_URL` 覆盖。
+
 公共音色和公共形象已经内置在 `scripts/lib/public-catalog.mjs`。**默认用公共的，不要让用户重新克隆。** 只有用户明确说「用我的声音 / 克隆这段录音」时才走克隆。
 
 ### 公共音色
@@ -85,15 +87,15 @@ description: >-
 
 ### 声音克隆
 
-样本音频 URL → `clone-voice.mjs` → 保存音色名称 → 告诉用户「已保存为××音色」
+样本音频 URL → `clone-voice.mjs` 提交后用 [声音克隆查询](https://apis.xiaobao.ink/doc/47) 轮询到 `voice_id` → 保存音色名称 → 告诉用户「已保存为××音色」
 
 ### TTS
 
-文案 + 音色名称（公共名或已克隆名；省略则热情娜娜）→ `tts.mjs` → **audio_url**
+文案 + 音色名称（公共名或已克隆名；省略则热情娜娜）→ `tts.mjs` 提交后用 [语音合成查询](https://apis.xiaobao.ink/doc/45) 到 **audio_url**
 
 ### 数字人
 
-人物视频（可写公共形象称呼）+ 音频或文案 → `create-avatar.mjs` / `speak.mjs` → **video_url**
+人物视频（可写公共形象称呼）+ 音频或文案 → `create-avatar.mjs` / `speak.mjs` 提交后用 [数字人合成查询](https://apis.xiaobao.ink/doc/48) 轮询到 **video_url**
 
 ### 串联短视频
 

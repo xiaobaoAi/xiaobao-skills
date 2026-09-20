@@ -1,7 +1,9 @@
 /** 智能剪辑专用；HTTP 客户端见 scripts/vendor/xiaobao-api */
 export {
     loadCredentials,
-    saveCredentials
+    saveCredentials,
+    resolveNotifyUrl,
+    DEFAULT_NOTIFY_URL
 } from '../vendor/xiaobao-api/credentials.mjs'
 
 export {
@@ -17,6 +19,9 @@ export {
     extractStatus,
     queryAihumanTask,
     pollAihumanTask,
+    querySmartClipTask,
+    pollSmartClipTask,
+    interpretSmartClipQuery,
     friendlyError
 } from '../vendor/xiaobao-api/client.mjs'
 
@@ -57,8 +62,18 @@ export function ensureProcessRules(body) {
     return next
 }
 
+/** 创建时补默认 notify / callback_url；结果仍靠 task_query 轮询 */
+export function ensureNotify(body) {
+    const next = { ...(body || {}) }
+    if (next.notify || next.callback_url || next.callbackUrl) return next
+    const url = resolveNotifyUrl()
+    next.notify = url
+    next.callback_url = url
+    return next
+}
+
 export function whitelistBody(apiType, body) {
-    const src = ensureProcessRules(body || {})
+    const src = ensureNotify(ensureProcessRules(body || {}))
     if (apiType === 'broadcast_mixcut') {
         return pick(src, [
             'styleId',
@@ -67,6 +82,7 @@ export function whitelistBody(apiType, body) {
             'resolution',
             'content',
             'callback_url',
+            'notify',
             'title',
             'language',
             'packRules',
@@ -81,6 +97,7 @@ export function whitelistBody(apiType, body) {
             'materials',
             'title',
             'callback_url',
+            'notify',
             'language',
             'packRules',
             'structLayers',

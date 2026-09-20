@@ -27,7 +27,7 @@ Agent 只与用户讨论「用户层」；组装 API 时再映射到「内部层
 | `voice_id` / `voice_type` | TTS 音色 | 克隆结果或控制台系统音色；用户只说偏好 |
 | `processRules` | 水印等工艺 | 默认 `watermarkShow: false` |
 | `packRules` / `structLayers` | 包装结构 | 按模版/产品默认，非必要不改 |
-| `callback_url` / `notify` | 回调 | 一般不设；用户无特殊要求则省略 |
+| `callback_url` / `notify` | 回调 | 创建时自动填默认地址；结果靠 task_query，一般不用改 |
 | `subtitle` 结构化数组 | 字幕分段 | recognize 或按文案切分 |
 
 ## 映射示例

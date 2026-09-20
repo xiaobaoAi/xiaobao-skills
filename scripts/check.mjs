@@ -17,11 +17,15 @@ import { pickTemplate } from '../xiaobao-router/scripts/lib/templates.mjs'
 import { digitalScript } from '../xiaobao-viral-agent/scripts/lib/delegate-digital.mjs'
 import { apiTypeToPath, modeToApiType } from '../xiaobao-viral-agent/scripts/lib/api.mjs'
 import { fromParseData, normalizeSubtitle } from '../xiaobao-video-agent/scripts/lib/schema.mjs'
-import { assertBizOk, extractTaskId, isDirectMediaUrl } from '../shared/xiaobao-api/client.mjs'
+import { assertBizOk, extractTaskId, interpretTtsQuery, interpretSmartClipQuery, interpretCloneVoiceQuery, interpretCreateQuery, isDirectMediaUrl } from '../shared/xiaobao-api/client.mjs'
 import {
     findPublicVoice,
     resolveAvatarUrl
 } from '../xiaobao-digital-human/scripts/lib/public-catalog.mjs'
+import {
+    DEFAULT_NOTIFY_URL,
+    resolveNotifyUrl
+} from '../shared/xiaobao-api/credentials.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -137,6 +141,89 @@ test('视频理解字段缺失为 null', () => {
     assert.deepEqual(normalizeSubtitle('第一句\n第二句'), [{ text: '第一句' }, { text: '第二句' }])
     assert.equal(isDirectMediaUrl('https://a.com/v.mp4?x=1'), true)
     assert.equal(isDirectMediaUrl('https://v.douyin.com/abc'), false)
+})
+
+test('语音合成查询：1 成功，0 处理中，2 失败', () => {
+    const done = interpretTtsQuery({
+        code: 200,
+        data: { status: 1, audio_url: 'https://a.mp3', srt_url: 'https://a.srt', task_id: 't1' }
+    })
+    assert.equal(done.state, 'done')
+    assert.equal(done.audio_url, 'https://a.mp3')
+    assert.equal(interpretTtsQuery({ code: 200, data: { status: 0, audio_url: '' } }).state, 'pending')
+    assert.equal(interpretTtsQuery({ code: 200, data: { status: 2, fail_reason: '余额不足' } }).message, '余额不足')
+})
+
+test('声音克隆查询：1 成功拿 voice_id，0 等待，2 失败', () => {
+    const done = interpretCloneVoiceQuery({
+        code: 200,
+        data: {
+            status: 1,
+            voice_id: 'c5469fea',
+            name: '老板音',
+            demo_url: 'https://a.wav',
+            task_id: 'c1'
+        }
+    })
+    assert.equal(done.state, 'done')
+    assert.equal(done.voice_id, 'c5469fea')
+    assert.equal(interpretCloneVoiceQuery({ code: 200, data: { status: 0 } }).state, 'pending')
+    assert.match(
+        interpretCloneVoiceQuery({ code: 200, data: { status: 2, fail_reason: '样本太短' } }).message,
+        /样本太短/
+    )
+})
+
+test('数字人合成查询：1 成功拿 video_url，0 等待，2 失败', () => {
+    const done = interpretCreateQuery({
+        code: 200,
+        data: {
+            status: 1,
+            video_url: 'https://a.mp4',
+            video_time: 15,
+            video_size: 1000,
+            task_id: 's1'
+        }
+    })
+    assert.equal(done.state, 'done')
+    assert.equal(done.video_url, 'https://a.mp4')
+    assert.equal(interpretCreateQuery({ code: 200, data: { status: 0 } }).state, 'pending')
+    assert.match(
+        interpretCreateQuery({ code: 200, data: { status: 2, fail_reason: '音频不可用' } }).message,
+        /音频不可用/
+    )
+})
+
+test('智能剪辑查询：completed 成功，pending 等待，failed 失败', () => {
+    const done = interpretSmartClipQuery({
+        code: 200,
+        data: {
+            status: 'completed',
+            local_status: 2,
+            video_url: 'https://a.mp4',
+            api_type: 'realman_broadcast',
+            progress: 100
+        }
+    })
+    assert.equal(done.state, 'done')
+    assert.equal(done.video_url, 'https://a.mp4')
+    assert.equal(
+        interpretSmartClipQuery({ code: 200, data: { status: 'processing', progress: 40 } }).state,
+        'pending'
+    )
+    assert.match(
+        interpretSmartClipQuery({
+            code: 200,
+            data: { status: 'failed', local_status: 3, fail_reason: '素材无效' }
+        }).message,
+        /素材无效/
+    )
+})
+
+test('默认 notify：无配置时用内置地址，参数可覆盖', () => {
+    assert.match(DEFAULT_NOTIFY_URL, /^https:\/\//)
+    assert.equal(resolveNotifyUrl('https://example.com/cb'), 'https://example.com/cb')
+    assert.equal(resolveNotifyUrl(''), DEFAULT_NOTIFY_URL)
 })
 
 test('公共音色和形象按称呼解析，不必克隆', () => {
