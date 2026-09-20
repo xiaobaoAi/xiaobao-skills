@@ -4,9 +4,9 @@
 
 **触发：** 克隆声音、用我的声音（尚无已存音色）  
 
-**输入：** 清晰人声样本公网 URL、给音色起的名字  
+**输入：** 清晰人声样本（公网 URL 或本地文件）、给音色起的名字  
 
-**步骤：** `clone-voice.mjs` 提交后用 [声音克隆查询](https://apis.xiaobao.ink/doc/47) 按任务号轮询到 `voice_id`，再写入 `voices.json`。不要用数字人任务查询接口查克隆。  
+**步骤：** 本地样本先 [上传](https://apis.xiaobao.ink/doc/49)；`clone-voice.mjs` 提交后用 [声音克隆查询](https://apis.xiaobao.ink/doc/47) 按任务号轮询到 `voice_id`，再写入 `voices.json`。不要用数字人任务查询接口查克隆。  
 
 **输出给用户：** 「已保存音色：{名称}」（不展示 voice_id）
 

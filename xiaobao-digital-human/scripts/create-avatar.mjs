@@ -12,6 +12,7 @@ import {
     printJson,
     extractTaskId,
     pollCreateTask,
+    ensurePublicUrl,
     friendlyError
 } from './vendor/xiaobao-api/client.mjs'
 import { resolveNotifyUrl } from './vendor/xiaobao-api/credentials.mjs'
@@ -39,9 +40,15 @@ if (args.input) {
 body.notify = resolveNotifyUrl(args.notify || body.notify)
 
 try {
+    const videoUrl = await ensurePublicUrl(body.video_url || body.person_video || '')
+    const audioUrl = await ensurePublicUrl(body.audio_url || '')
+    if (!videoUrl || !audioUrl) {
+        throw new Error('请提供形象视频与音频的公网地址或本地文件')
+    }
+
     const resp = await postJson('/api/aihuman/create', {
-        video_url: body.video_url,
-        audio_url: body.audio_url,
+        video_url: videoUrl,
+        audio_url: audioUrl,
         notify: body.notify
     })
     const taskId = extractTaskId(resp)

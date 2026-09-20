@@ -17,7 +17,7 @@ import { pickTemplate } from '../xiaobao-router/scripts/lib/templates.mjs'
 import { digitalScript } from '../xiaobao-viral-agent/scripts/lib/delegate-digital.mjs'
 import { apiTypeToPath, modeToApiType } from '../xiaobao-viral-agent/scripts/lib/api.mjs'
 import { fromParseData, normalizeSubtitle } from '../xiaobao-video-agent/scripts/lib/schema.mjs'
-import { assertBizOk, extractTaskId, interpretTtsQuery, interpretSmartClipQuery, interpretCloneVoiceQuery, interpretCreateQuery, isDirectMediaUrl } from '../shared/xiaobao-api/client.mjs'
+import { assertBizOk, extractTaskId, interpretTtsQuery, interpretSmartClipQuery, interpretCloneVoiceQuery, interpretCreateQuery, isDirectMediaUrl, ensurePublicUrl } from '../shared/xiaobao-api/client.mjs'
 import {
     findPublicVoice,
     resolveAvatarUrl
@@ -218,6 +218,11 @@ test('智能剪辑查询：completed 成功，pending 等待，failed 失败', (
         }).message,
         /素材无效/
     )
+})
+
+test('公网地址原样返回，不必上传', async () => {
+    assert.equal(await ensurePublicUrl('https://a.mp4'), 'https://a.mp4')
+    assert.equal(await ensurePublicUrl(''), '')
 })
 
 test('默认 notify：无配置时用内置地址，参数可覆盖', () => {

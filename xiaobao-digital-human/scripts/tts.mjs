@@ -14,6 +14,7 @@ import {
     extractTaskId,
     pollTtsTask,
     pollCloneVoiceTask,
+    ensurePublicUrl,
     friendlyError
 } from './vendor/xiaobao-api/client.mjs'
 import {
@@ -84,8 +85,9 @@ try {
     const sample = String(args['audio-url'] || args['voice-url'] || body.sample_url || '').trim()
     if (sample) {
         const name = String(args['voice-name'] || args.name || '临时音色')
+        const sampleUrl = await ensurePublicUrl(sample)
         const cloneResp = await postJson('/api/aihuman/clonevoice', {
-            voice_url: sample,
+            voice_url: sampleUrl,
             name,
             lang: String(args.lang || body.lang || 'zh-cn'),
             notify: resolveNotifyUrl(args.notify || body.notify)
@@ -94,7 +96,7 @@ try {
         if (!cloneTask) throw new Error('克隆未返回任务号')
         const cloned = await pollCloneVoiceTask(cloneTask)
         if (!cloned.voice_id) throw new Error('克隆未得到音色')
-        upsertVoice({ name, voice_id: cloned.voice_id, voice_type: 'custom', sample_url: sample })
+        upsertVoice({ name, voice_id: cloned.voice_id, voice_type: 'custom', sample_url: sampleUrl })
         body.voice_id = cloned.voice_id
         body.voice_type = 'custom'
         body.voice_name = name

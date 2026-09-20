@@ -6,6 +6,7 @@ Base URL 默认 `https://apis.xiaobao.ink`。鉴权：JSON body 内字段 `key`�
 
 | 能力 | Method | Path | Query | 文档 |
 |------|--------|------|-------|------|
+| 文件上传 | POST multipart | `/api/file/upload` | `key` | [doc/49](https://apis.xiaobao.ink/doc/49) |
 | 模版列表 | POST | `/api/smartclip/template` | — | [doc/23](https://apis.xiaobao.ink/doc/23) |
 | 真人口播 create | POST | `/api/smartclip/realman_broadcast` | `action=create` | [doc/25](https://apis.xiaobao.ink/doc/25) |
 | 素材/口播混剪 create | POST | `/api/smartclip/broadcast_mixcut` | `action=create` | 开放平台 smartclip |

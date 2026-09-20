@@ -14,6 +14,8 @@ export {
     assertBizOk,
     postJson,
     postForm,
+    uploadLocalFile,
+    ensurePublicUrl,
     extractTaskId,
     extractResultUrl,
     extractStatus,

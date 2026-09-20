@@ -82,8 +82,8 @@ export function friendlyError(err) {
     if (/403|权限|未开通/.test(msg)) {
         return '当前账号没有该能力权限，请到开放平台开通。'
     }
-    if (/余额|点数|quota|不足/.test(msg)) {
-        return '余额或点数不足，请充值后再试。'
+    if (/余额|点数|quota|不足|存储|容量/.test(msg)) {
+        return '余额、点数或存储配额不足，请充值或清理空间后再试。'
     }
     if (/格式|format|codec|unsupported/i.test(lower)) {
         return '声音或视频格式可能不受支持，请换 mp3/wav 音频或 mp4 视频后重试。'
@@ -170,6 +170,103 @@ export async function postForm(pathname, fields = {}) {
         throw new Error(`HTTP ${res.status}: ${formatApiError(data, text || res.statusText)}`)
     }
     return data
+}
+
+function guessMime(filename) {
+    const ext = String(filename || '')
+        .split('.')
+        .pop()
+        ?.toLowerCase()
+    const map = {
+        mp3: 'audio/mpeg',
+        wav: 'audio/wav',
+        m4a: 'audio/mp4',
+        aac: 'audio/aac',
+        flac: 'audio/flac',
+        ogg: 'audio/ogg',
+        mp4: 'video/mp4',
+        mov: 'video/quicktime',
+        webm: 'video/webm',
+        mkv: 'video/x-matroska',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        webp: 'image/webp',
+        gif: 'image/gif'
+    }
+    return map[ext] || 'application/octet-stream'
+}
+
+/**
+ * 本地文件 → 公网 URL。
+ * 文档：https://apis.xiaobao.ink/doc/49  POST /api/file/upload
+ */
+export async function uploadLocalFile(filePath, { folder, name } = {}) {
+    const fs = await import('node:fs')
+    const path = await import('node:path')
+    const { File } = await import('node:buffer')
+    const abs = path.resolve(String(filePath || '').trim())
+    if (!abs || !fs.existsSync(abs) || !fs.statSync(abs).isFile()) {
+        throw new Error(`文件不存在: ${abs || filePath}`)
+    }
+    const { base_url, api_key } = loadCredentials()
+    const basename = path.basename(abs)
+    const buf = fs.readFileSync(abs)
+    const file = new File([buf], basename, { type: guessMime(basename) })
+    const form = new FormData()
+    form.append('file', file)
+    if (folder) form.append('folder', String(folder))
+    if (name) form.append('name', String(name))
+
+    const url = new URL('/api/file/upload', base_url)
+    url.searchParams.set('key', api_key)
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: form
+    })
+    const text = await res.text()
+    let data
+    try {
+        data = JSON.parse(text)
+    } catch {
+        data = { raw: text }
+    }
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${formatApiError(data, text || res.statusText)}`)
+    }
+    const resp = assertBizOk(data, '文件上传')
+    const out = resp?.data && typeof resp.data === 'object' ? resp.data : {}
+    const publicUrl = String(out.url || '').trim()
+    if (!publicUrl) throw new Error('上传成功但未返回公网地址')
+    return {
+        url: publicUrl,
+        file_id: out.file_id ?? null,
+        path: out.path || null,
+        size: Number(out.size) || buf.length,
+        storage_quota: Number(out.storage_quota) || 0,
+        storage_used: Number(out.storage_used) || 0,
+        storage_remain: Number(out.storage_remain) || 0,
+        local_path: abs,
+        response: resp
+    }
+}
+
+/** http(s) 原样返回；本地路径 / file:// 先上传再返回公网 URL */
+export async function ensurePublicUrl(input, opts = {}) {
+    const raw = String(input || '').trim()
+    if (!raw) return ''
+    if (/^https?:\/\//i.test(raw)) return raw
+    let local = raw
+    if (/^file:\/\//i.test(raw)) {
+        try {
+            local = decodeURIComponent(raw.replace(/^file:\/\//i, ''))
+        } catch {
+            local = raw.replace(/^file:\/\//i, '')
+        }
+    }
+    const uploaded = await uploadLocalFile(local, opts)
+    return uploaded.url
 }
 
 export function extractTaskId(resp) {

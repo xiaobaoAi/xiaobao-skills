@@ -118,6 +118,15 @@ export function avatarForGender(gender) {
 export function resolveAvatarUrl(hint, voiceHint = '') {
     const raw = String(hint || '').trim()
     if (/^https?:\/\//i.test(raw)) return raw
+    // 本地路径留给 ensurePublicUrl 上传
+    if (
+        raw &&
+        (/^file:\/\//i.test(raw) ||
+            /[\\/]/.test(raw) ||
+            /\.(mp4|mov|m4v|webm|mkv)$/i.test(raw))
+    ) {
+        return raw
+    }
     const named = findPublicAvatar(raw)
     if (named) return named.video_url
     if (raw) return ''

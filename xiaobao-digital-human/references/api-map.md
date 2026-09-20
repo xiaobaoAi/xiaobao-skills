@@ -4,6 +4,7 @@ HTTP 实现见各 Skill 内 `scripts/vendor/xiaobao-api`（源码：`shared/xiao
 
 | 能力 | Path | 文档 | 脚本 |
 |------|------|------|------|
+| 文件上传 | POST `/api/file/upload` | [doc/49](https://apis.xiaobao.ink/doc/49) | `upload.mjs`；克隆/合成遇本地路径会自动上传 |
 | 声音克隆 | POST `/api/aihuman/clonevoice` | [doc/9](https://apis.xiaobao.ink/doc/9) | `clone-voice.mjs` |
 | 声音克隆查询 | GET `/api/aihuman/clonevoice_query` | [doc/47](https://apis.xiaobao.ink/doc/47) | `clone-voice.mjs` 内置轮询 |
 | TTS | POST `/api/aihuman/tts` | [doc/10](https://apis.xiaobao.ink/doc/10) | `tts.mjs` |

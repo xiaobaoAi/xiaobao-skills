@@ -12,6 +12,7 @@ import {
     printJson,
     extractTaskId,
     pollCloneVoiceTask,
+    ensurePublicUrl,
     friendlyError
 } from './vendor/xiaobao-api/client.mjs'
 import { upsertVoice, resolveNotifyUrl } from './vendor/xiaobao-api/credentials.mjs'
@@ -26,7 +27,10 @@ if (args.input) {
 } else {
     const audioUrl = String(args['audio-url'] || args['voice-url'] || args.url || '').trim()
     if (!audioUrl) {
-        console.error('用法: node clone-voice.mjs --audio-url https://xx.mp3 --name 我的音色')
+        console.error(
+            '用法: node clone-voice.mjs --audio-url https://xx.mp3 --name 我的音色\n' +
+                '  或: node clone-voice.mjs --audio-url ./sample.mp3 --name 我的音色'
+        )
         process.exit(1)
     }
     displayName = String(args.name || '我的音色')
@@ -40,6 +44,9 @@ if (args.input) {
 body.notify = resolveNotifyUrl(args.notify || body.notify)
 
 try {
+    body.voice_url = await ensurePublicUrl(body.voice_url || body.audio_url || '')
+    if (!body.voice_url) throw new Error('请提供样本音频公网地址或本地文件')
+
     const resp = await postJson('/api/aihuman/clonevoice', body)
     const taskId = extractTaskId(resp)
     if (!taskId) throw new Error('克隆任务未返回编号，请稍后重试')

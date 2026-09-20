@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /**
- * 素材就绪：公网 URL 原样返回；本地路径走开放平台上传（doc/49）
- * 用法:
- *   node upload.mjs --url https://...
- *   node upload.mjs --file ./local.mp4
- *   node upload.mjs --file ./a.mp3 --folder skills --name sample
+ * 本地文件 → 公网 URL（与 viral-agent 同接口 doc/49）
+ * 用法: node upload.mjs --file ./sample.mp3
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { parseArgs, printJson, uploadLocalFile, friendlyError } from './lib/api.mjs'
+import {
+    parseArgs,
+    printJson,
+    uploadLocalFile,
+    friendlyError
+} from './vendor/xiaobao-api/client.mjs'
 
 const args = parseArgs()
 const input = String(args.file || args.url || args._[0] || '').trim()
@@ -16,9 +18,7 @@ const folder = args.folder ? String(args.folder) : undefined
 const name = args.name ? String(args.name) : undefined
 
 if (!input) {
-    console.error(
-        '用法: node upload.mjs --url https://...  或  node upload.mjs --file ./local.mp4'
-    )
+    console.error('用法: node upload.mjs --file ./local.mp3  或  --url https://...')
     process.exit(1)
 }
 
@@ -27,7 +27,6 @@ try {
         printJson({ ok: true, url: input, source: 'remote' })
         process.exit(0)
     }
-
     let local = input
     if (/^file:\/\//i.test(input)) {
         try {
@@ -41,7 +40,6 @@ try {
         console.error(`文件不存在: ${abs}`)
         process.exit(1)
     }
-
     const uploaded = await uploadLocalFile(abs, { folder, name })
     printJson({
         ok: true,

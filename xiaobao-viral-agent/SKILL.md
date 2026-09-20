@@ -56,7 +56,7 @@ description: >-
 | 人物 | 谁出镜 | 老板、数字人形象、已有口播视频 |
 | 声音 | 音色偏好 | 女声、沉稳男声、品牌音色样本 |
 | 风格 | 视觉调性 | 科技感、政务风、种草、活泼 |
-| 素材 | 图片/视频/音频链接 | 公网 https 地址 |
+| 素材 | 图片/视频/音频 | 公网 https，或本地文件先 `upload.mjs` |
 | 平台 | 投放渠道 | 抖音、视频号、B 站 |
 | 横竖屏 | 画幅 | 竖屏 9:16、横屏 16:9 |
 
@@ -152,8 +152,8 @@ node scripts/list-templates.mjs --scene <scene>
 
 ## 8. 处理素材
 
-1. 仅接受公网 `https` URL（或用户确认可公网访问的链接）。
-2. 本地路径：提示先上传到对象存储或提供可访问链接；可参考 `scripts/upload.mjs`（本地文件不会自动变成公网 URL）。
+1. 优先公网 `https` URL。
+2. 本地路径：先 `scripts/upload.mjs --file ./local.mp4`（[doc/49](https://apis.xiaobao.ink/doc/49)）拿到 `url`，再写入 create 参数。免费额度默认 500MB，超额按算力扣费。
 3. 包装任务可先 `recognize.mjs` 生成字幕分段，再写入内部 payload。
 4. 需要配音且无音频时：在内部走 TTS / 克隆音色脚本；向用户只确认「用哪类声音」，不要求 voice_id。
 

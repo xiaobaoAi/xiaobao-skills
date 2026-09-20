@@ -77,7 +77,7 @@ description: >-
 | 生成一段 TTS / 文案转语音 | `tts.mjs`，未指定音色则 `--voice-name 热情娜娜` |
 | 用女声 / 用男声 / 点名公共音色 | `tts.mjs` 或 `speak.mjs` 的 `--voice-name`，不要克隆 |
 | 克隆我的声音 | 仅此时 `clone-voice.mjs` |
-| 用我的声音读文案 | 已保存名称用 `--voice-name`；否则 `--audio-url` 样本边克隆边合成 |
+| 用我的声音读文案 | 已保存名称用 `--voice-name`；否则 `--audio-url` 样本（公网或本地）边克隆边合成 |
 | 用数字人说这段话 | `speak.mjs`。形象可省略，或 `--person-video 年轻女性商务` |
 | 数字人视频后再做完整短视频 | speak/create-avatar → **xiaobao-viral-agent** |
 
@@ -87,7 +87,7 @@ description: >-
 
 ### 声音克隆
 
-样本音频 URL → `clone-voice.mjs` 提交后用 [声音克隆查询](https://apis.xiaobao.ink/doc/47) 轮询到 `voice_id` → 保存音色名称 → 告诉用户「已保存为××音色」
+样本音频（公网 URL 或本地文件，本地会先 [上传](https://apis.xiaobao.ink/doc/49)）→ `clone-voice.mjs` 提交后用 [声音克隆查询](https://apis.xiaobao.ink/doc/47) 轮询到 `voice_id` → 保存音色名称 → 告诉用户「已保存为××音色」
 
 ### TTS
 
