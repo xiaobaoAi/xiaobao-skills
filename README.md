@@ -4,7 +4,8 @@
 
 理解、数字人、剪辑由 Router 串好，和 [爆款智能体](https://xiaobao.ink/digital_human/agent) 是同一套能力，装在 Cursor / Codex 里。直连 [apis.xiaobao.ink](https://apis.xiaobao.ink/)，Key 只留在本机。本地素材会先上传；剪辑前按平台要求校验格式与时长。
 
-- 体验：[https://xiaobao.ink/digital_human/agent](https://xiaobao.ink/digital_human/agent)
+- 体验成片：[爆款智能体](https://xiaobao.ink/digital_human/agent)
+- 体验配音：[AI 配音台](https://xiaobao.ink/digital_human/ai_voice)
 - 落地页：[https://xiaobao.ink/skills/](https://xiaobao.ink/skills/)
 - 仓库：[xiaobaoAi/xiaobao-skills](https://github.com/xiaobaoAi/xiaobao-skills)
 
