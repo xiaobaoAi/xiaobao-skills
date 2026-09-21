@@ -45,14 +45,25 @@ export const PUBLIC_VOICES = [
 
 export const PUBLIC_AVATARS = [
     {
-        name: '中年稳重主播',
-        gender: 'male',
-        video_url: 'https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260910/202609100859527333c4612.mp4'
+        name: '新闻主播',
+        gender: 'female',
+        style: '职业女性·专业',
+        video_url:
+            'https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/202609211043306cd031836.mp4'
     },
     {
-        name: '年轻女性商务',
+        name: '日常自然',
         gender: 'female',
-        video_url: 'https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260910/20260910085951e1d8c1631.mp4'
+        style: '日常·自然',
+        video_url:
+            'https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/2026092110432979e0c8897.mp4'
+    },
+    {
+        name: '男生新闻主播',
+        gender: 'male',
+        style: '男性·新闻主播',
+        video_url:
+            'https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/20260921105256763f36229.mp4'
     }
 ]
 
@@ -69,13 +80,24 @@ const VOICE_ALIASES = {
 }
 
 const AVATAR_ALIASES = {
-    男主播: '中年稳重主播',
-    主播: '中年稳重主播',
-    稳重: '中年稳重主播',
-    中年: '中年稳重主播',
-    女主播: '年轻女性商务',
-    商务: '年轻女性商务',
-    年轻女性: '年轻女性商务'
+    新闻: '新闻主播',
+    职业女性: '新闻主播',
+    专业: '新闻主播',
+    女主播: '新闻主播',
+    主播: '新闻主播',
+    商务: '新闻主播',
+    年轻女性商务: '新闻主播',
+    日常: '日常自然',
+    自然: '日常自然',
+    年轻女性: '日常自然',
+    男生新闻主播: '男生新闻主播',
+    男新闻主播: '男生新闻主播',
+    男性新闻主播: '男生新闻主播',
+    男主播: '男生新闻主播',
+    男生: '男生新闻主播',
+    男性: '男生新闻主播',
+    中年稳重主播: '男生新闻主播',
+    稳重: '男生新闻主播'
 }
 
 function norm(value) {
@@ -112,7 +134,10 @@ export function defaultPublicVoice() {
 }
 
 export function avatarForGender(gender) {
-    return PUBLIC_AVATARS.find((item) => item.gender === gender) || PUBLIC_AVATARS[1]
+    if (gender === 'male') {
+        return findPublicAvatar('男生新闻主播') || PUBLIC_AVATARS.find((item) => item.gender === 'male')
+    }
+    return findPublicAvatar('日常自然') || PUBLIC_AVATARS.find((item) => item.gender === 'female') || PUBLIC_AVATARS[0]
 }
 
 export function resolveAvatarUrl(hint, voiceHint = '') {

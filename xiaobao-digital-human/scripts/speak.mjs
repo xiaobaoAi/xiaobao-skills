@@ -21,7 +21,7 @@ let personVideo = resolveAvatarUrl(personRaw, voiceHint || '热情娜娜')
 
 if (!text || !personVideo) {
     console.error(
-        `用法: node speak.mjs --text "文案" [--voice-name 热情娜娜] [--person-video 年轻女性商务]\n公共形象：${publicAvatarNames().join('、')}`
+        `用法: node speak.mjs --text "文案" [--voice-name 热情娜娜] [--person-video 日常自然]\n公共形象：${publicAvatarNames().join('、')}`
     )
     process.exit(1)
 }

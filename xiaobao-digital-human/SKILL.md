@@ -38,12 +38,13 @@ description: >-
 
 ### 公共形象
 
-未指定形象时：女声用 **年轻女性商务**，男声用 **中年稳重主播**。`--person-video` 可直接传称呼，脚本会换成地址。
+未指定形象时：女声默认 **日常自然**，男声默认 **男生新闻主播**。`--person-video` 可直接传称呼，脚本会换成地址。
 
-| 称呼 | 视频 |
-|------|------|
-| 中年稳重主播 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260910/202609100859527333c4612.mp4 |
-| 年轻女性商务 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260910/20260910085951e1d8c1631.mp4 |
+| 称呼 | 风格 | 视频 |
+|------|------|------|
+| 新闻主播 | 职业女性 · 专业 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/202609211043306cd031836.mp4 |
+| 日常自然 | 日常 · 自然 · 女性 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/2026092110432979e0c8897.mp4 |
+| 男生新闻主播 | 男性 · 新闻主播 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/20260921105256763f36229.mp4 |
 
 ---
 
@@ -78,7 +79,7 @@ description: >-
 | 用女声 / 用男声 / 点名公共音色 | `tts.mjs` 或 `speak.mjs` 的 `--voice-name`，不要克隆 |
 | 克隆我的声音 | 仅此时 `clone-voice.mjs` |
 | 用我的声音读文案 | 已保存名称用 `--voice-name`；否则 `--audio-url` 样本（公网或本地）边克隆边合成 |
-| 用数字人说这段话 | `speak.mjs`。形象可省略，或 `--person-video 年轻女性商务` |
+| 用数字人说这段话 | `speak.mjs`。形象可省略，或 `--person-video 日常自然` / `新闻主播` / `男生新闻主播` |
 | 数字人视频后再做完整短视频 | speak/create-avatar → **xiaobao-viral-agent** |
 
 ---
@@ -115,8 +116,8 @@ node scripts/setup-credentials.mjs --api-key YOUR_KEY
 
 node scripts/tts.mjs --text "大家好" --voice-name 热情娜娜
 node scripts/tts.mjs --text "大家好" --voice-name 阳光男生
-node scripts/speak.mjs --text "大家好" --voice-name 悠悠 --person-video 年轻女性商务
-node scripts/speak.mjs --text "大家好" --voice-name 磁性男士 --person-video 中年稳重主播
+node scripts/speak.mjs --text "大家好" --voice-name 悠悠 --person-video 日常自然
+node scripts/speak.mjs --text "大家好" --voice-name 磁性男士 --person-video 男生新闻主播
 ```
 
 ---
