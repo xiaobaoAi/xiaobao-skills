@@ -80,7 +80,7 @@ description: >-
 | 克隆我的声音 | 仅此时 `clone-voice.mjs` |
 | 用我的声音读文案 | 已保存名称用 `--voice-name`；否则 `--audio-url` 样本（公网或本地）边克隆边合成 |
 | 用数字人说这段话 | `speak.mjs`。形象可省略，或 `--person-video 日常自然` / `新闻主播` / `男生新闻主播` |
-| 数字人视频后再做完整短视频 | speak/create-avatar → **xiaobao-viral-agent** |
+| 数字人视频后再做完整短视频 | speak/create-avatar → **先问是否包装** → 要则 **xiaobao-viral-agent** |
 
 ---
 
@@ -100,10 +100,12 @@ description: >-
 
 ### 串联短视频
 
+先交付数字人 `video_url`，并确认用户是否还要包装；不要包装则结束。
+
 ```
 文案 + 形象 + 声音
-  → digital-human（audio_url / video_url）
-  → viral-agent（realMan 等模版剪辑）
+  → digital-human（audio_url / video_url）→ 问是否包装
+  →（若需要）viral-agent（realMan 等模版剪辑）
   → 最终成片 URL
 ```
 
