@@ -1,10 +1,17 @@
 /** 智能剪辑专用；HTTP 客户端见 scripts/vendor/xiaobao-api */
-export {
+import {
     loadCredentials,
     saveCredentials,
     resolveNotifyUrl,
     DEFAULT_NOTIFY_URL
 } from '../vendor/xiaobao-api/credentials.mjs'
+
+export {
+    loadCredentials,
+    saveCredentials,
+    resolveNotifyUrl,
+    DEFAULT_NOTIFY_URL
+}
 
 export {
     parseArgs,
