@@ -18,6 +18,24 @@ node xiaobao-router/scripts/route.mjs --text "把这个视频改成我的数字�
 API：[apis.xiaobao.ink](https://apis.xiaobao.ink/)  
 仓库：[xiaobaoAi/xiaobao-skills](https://github.com/xiaobaoAi/xiaobao-skills)
 
+## 界面一览
+
+### 图一：抓取全媒体平台的文案
+
+![抓取全媒体平台的文案](docs/images/01-extract-copy.png)
+
+### 图二：文本合成语音
+
+![文本合成语音](docs/images/02-tts.png)
+
+### 图三：这个 SKILL 的几个模式
+
+![这个 SKILL 的几个模式](docs/images/03-modes.png)
+
+### 图四：视频包装模版
+
+![视频包装模版](docs/images/04-templates.png)
+
 公共 HTTP 客户端：`shared/xiaobao-api`（同步到各 Skill `scripts/vendor/xiaobao-api`）。
 
 ```bash
