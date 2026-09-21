@@ -2,8 +2,13 @@
   "styleId": "REPLACE_TEMPLATE_ID",
   "videoUrl": "https://example.com/finished-shoot.mp4",
   "title": "成片包装示例",
+  "imageUrl": "https://example.com/cover.jpg",
   "subtitle": [
     { "text": "从识别结果或口播稿填入字幕分段" }
+  ],
+  "materials": [
+    { "type": "video", "fileUrl": "https://example.com/broll-1.mp4", "duration": 8 },
+    { "type": "image", "fileUrl": "https://example.com/extra-shot.jpg" }
   ],
   "processRules": { "watermarkShow": false }
 }

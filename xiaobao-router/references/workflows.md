@@ -45,8 +45,9 @@
 
 触发：「给这个视频加字幕和包装。」
 
-1. `video-agent --intent subtitle`
-2. `viral-agent` `videoPackaging`
+1. `video-agent --intent subtitle`（或 viral 内 `recognize.mjs`）
+2. **包装确认闸门**（见 viral `workflows.md` §4）：模版自选/自动、是否补素材、封面标题确认或全自动；用户说「全自动」可跳过
+3. `viral-agent` `videoPackaging`（create → poll）
 
 ## 单 Skill（depth = 1）
 

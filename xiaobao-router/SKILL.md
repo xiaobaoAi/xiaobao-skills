@@ -46,7 +46,7 @@ node scripts/route.mjs --text "用户原话"
 | 把这个视频改成我的数字人口播 | Workflow 1 |
 | 文案做成数字人口播短视频 | Workflow 2 |
 | 提取后改写再做成数字人口播 | Workflow 3（改写由你完成，再 `--rewritten-copy`） |
-| 视频加字幕并包装 | Workflow 4 |
+| 视频加字幕并包装 | Workflow 4（包装前先确认模版/素材/封面标题，或用户说全自动） |
 
 细节：`references/workflows.md`。协议：`references/protocol.md`。
 

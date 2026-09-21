@@ -109,25 +109,47 @@
 
 ### 用户输入（最小）
 
-- 成片视频公网 URL
-- 可选：标题、包装风格
+- 成片视频公网 URL（本地路径先 `upload.mjs`）
 
-### 自动处理
+### 确认闸门（创建任务前必做）
+
+**不要一上来就 create。** 先问清下面三项；用户若说「全自动 / 你来安排 / 智能安排」，三项全部跳过并由你决定。
+
+建议**一次问清**（减少来回）：
+
+```text
+做视频包装前请选一下（也可直接说「全自动，你来安排」）：
+
+1. 模版：A 我来选（你列几个风格） / B 系统自动选
+2. 补充素材：A 只要这条主视频 / B 我再传几段视频或图片
+3. 封面与标题：A 先给我草案，我确认后再生成 / B 你全权智能安排
+```
+
+| 项 | 用户选 A | 用户选 B / 全自动 |
+|----|----------|-------------------|
+| 模版 | `list-templates` 后给 **2～4 个中文风格名** 供选，禁止甩 styleId | 按风格关键词自动匹配，回复里一句话说明选用了什么风格 |
+| 补充素材 | 等用户给 URL 或本地文件；本地先上传；写入 `materials` | 不追加 `materials`（仅主视频） |
+| 封面与标题 | 先拟标题 + 封面方案（可用识别文案/抽帧思路），**等用户确认**再 create；用户可改标题或换封面图 | 自行定标题；有合适封面图则 `imageUrl`，否则交给模版默认 |
+
+主视频仍须符合 [media-requirements.md](media-requirements.md)。补充素材同样受 materials 规则约束。
+
+### 自动处理（确认之后）
 
 1. 判定 `videoPackaging`
-2. 列模版（`--scene realMan`）按包装风格匹配
-3. 需要字幕时：`recognize.mjs --file-url ...` 得到分段，映射为内部 subtitle
-4. 组装 `examples/videoPackaging.json` 形态 payload
+2. 按闸门结果选模版（自选或自动）
+3. 需要字幕时：`recognize.mjs --file-url ...` → 映射为内部 subtitle
+4. 若有补充素材 / 确认后的封面：写入 `materials` / `imageUrl` + `title`
+5. 组装 `examples/videoPackaging.json` 形态 payload → validate → create → poll
 
 ### API 调用（内部）
 
-- 可选：`recognize.mjs`
+- 可选：`upload.mjs`、`recognize.mjs`
 - `create-task.mjs --mode videoPackaging`
 - `poll-task.mjs --task-id <id>`
 
 ### 输出
 
-包装后成片 URL。
+包装后成片 URL；若用户选了封面标题确认，交付前可再贴一句最终标题。
 
 ---
 

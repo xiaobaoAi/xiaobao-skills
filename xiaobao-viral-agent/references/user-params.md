@@ -36,7 +36,10 @@ Agent 只与用户讨论「用户层」；组装 API 时再映射到「内部层
 |--------|----------------|
 | 「竖屏发抖音，科技感」 | list-templates → 筛 9:16 + 名称含科技 → 写入 styleId |
 | 「用这段文案」 | oralMix：TTS 得 audioUrl；或 realMan：字幕/数字人音频 |
-| 「这个 mp4 加字幕包装」 | videoPackaging + recognize → subtitle + styleId |
+| 「这个 mp4 加字幕包装」 | videoPackaging：先确认闸门 → recognize → subtitle + styleId |
+| 「全自动包装」 | 跳过闸门，自动选模版与标题 |
+| 「我选模版 + 再传素材」 | 列风格选项；upload 后写入 materials |
+| 「标题封面先给我确认」 | 先出草案，确认后再 create |
 | 「热点解读 + 这几张图」 | newsMixCutting，title=主题，materials=图 |
 
 ## 追问话术（好 vs 坏）

@@ -64,11 +64,18 @@ Agent 先根据自然语言判定下表「模式」，再收集用户层最小�
 **用户最小输入：**
 
 - 成片公网视频链接  
-- 可选：标题、包装风格  
 
-**媒体硬性要求：** 同 `videoUrl` 口播主视频规则；封面若传须 jpg/png ≤10MB。见 [media-requirements.md](media-requirements.md)。
+**创建前确认闸门（默认要问；「全自动」可跳过）：**
 
-**Agent 内部：** 选模版（scene=`realMan`）→ 可选识别字幕 → **校验素材** → create `videoPackaging` → poll  
+1. 模版：用户自选（列 2～4 个风格名）还是系统自动选  
+2. 是否追加视频/图片素材 → 有则上传后写入 `materials`  
+3. 封面与标题：草案确认，还是 Agent 全权智能安排  
+
+详见 [workflows.md](workflows.md) §4。
+
+**媒体硬性要求：** 同 `videoUrl` 口播主视频规则；封面若传须 jpg/png ≤10MB；补充素材同 materials 规则。见 [media-requirements.md](media-requirements.md)。
+
+**Agent 内部：** 确认闸门 → 选模版（scene=`realMan`）→ 可选识别字幕 → 组装 title / materials / imageUrl → **校验素材** → create `videoPackaging` → poll  
 **内部 apiType：** `realman_broadcast`（成片作 videoUrl）  
 **payload 参考：** `examples/videoPackaging.json`
 
