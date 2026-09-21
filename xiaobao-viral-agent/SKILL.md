@@ -96,7 +96,7 @@ description: >-
 
 - 必有其一：口播成片公网视频链接 **或**（形象源视频 + 文案/音频）
 - 建议：主题/标题、风格、横竖屏/平台
-- **创建剪辑前走确认闸门**（与下方 videoPackaging 同三项；详见 `references/workflows.md` §1）：模版自选/自动、是否补素材、封面标题确认或全自动。用户说「全自动」可跳过；**禁止默认闷头 create**
+- **创建剪辑前先问是否还要包装**（先交付口播视频）；要包装再走确认闸门（详见 `references/workflows.md` §1）：模版自选/自动、是否补素材、封面标题确认或全自动。用户说「全自动」可跳过细节；**不要包装则直接结束，禁止默认闷头 create**
 
 ### oralMixCutting
 
@@ -293,8 +293,9 @@ node scripts/list-templates.mjs --scene <scene>
 用户说「生成数字人后再做成完整短视频」：
 
 1. digital-human：`speak.mjs` 或 TTS + create-avatar → 得到口播 `video_url`
-2. **先走确认闸门**（模版 / 素材 / 封面标题，或「全自动」）
-3. 本 Skill：按确认结果选模版 → create → poll → 最终成片
+2. **先交付口播视频，并问是否还要包装**；不要包装则结束
+3. 要包装 → 再确认模版 / 素材 / 封面标题（或「全自动」）
+4. 本 Skill：按确认结果选模版 → create → poll → 最终成片
 
 用户说「根据这个视频做一条类似的」：先 video-agent 分析，再本 Skill 出片；若需数字人出镜则插入 digital-human。
 

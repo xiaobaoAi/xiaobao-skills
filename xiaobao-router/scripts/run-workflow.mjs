@@ -4,7 +4,7 @@
  * 用法:
  *   node run-workflow.mjs --id w1_video_digital_clip --url URL --person-video URL --voice-name 老板音
  *   node run-workflow.mjs --id w3_video_rewrite_digital_clip --url URL --rewritten-copy "改写后的文案" ...
- *   数字人完成后默认停在包装确认闸门；用户说「全自动」或 Agent 已确认后再带 --auto-pack --video-url 续跑剪辑。
+ *   数字人完成后默认先问「是否还要包装」；要包装再问模版/素材/标题，或用户说「全自动」后带 --auto-pack --video-url 续跑。
  */
 import fs from 'node:fs'
 import os from 'node:os'
@@ -119,7 +119,50 @@ async function clip({ mode, videoUrl, title, subtitle, materials, styleHint, dep
     return polled
 }
 
-/** 数字人完成后的包装确认闸门：禁止默认闷头剪辑 */
+/** 数字人完成后：先问要不要包装；要包装再问模版等细节。禁止默认闷头剪辑 */
+function needPackGate({ workflowId, videoUrl, titleDraft, audioUrl, voiceName, person }) {
+    return ok({
+        status: 'await_user',
+        stage: 'need_pack',
+        agent_must_ask_user: true,
+        workflow_id: workflowId,
+        video_url: videoUrl,
+        audio_url: audioUrl || null,
+        voice_name: voiceName || null,
+        person: person || null,
+        title_draft: titleDraft || '',
+        ask: {
+            zh: [
+                '数字人口播已完成，可先交付口播视频。',
+                '还需要继续做模版包装成片吗？',
+                'A 需要包装（再选模版/素材/标题，或说「全自动」）',
+                'B 不用包装，数字人视频就可以'
+            ].join('\n')
+        },
+        hint: [
+            '必须先把数字人 video_url 交给用户，并询问是否还要包装。',
+            '选 B / 不用包装：到此结束，交付 video_url，禁止 create-task。',
+            '选 A / 需要包装：再问模版自选或自动、是否补素材、封面标题确认或全自动；确认后再 viral-agent 或 --auto-pack --video-url 续跑。',
+            '用户直接说「全自动」：视为需要包装且三项全权安排。不要重新 speak。'
+        ].join(''),
+        next: {
+            id: workflowId,
+            if_no_pack: { deliver: 'video_url', stop: true },
+            if_pack_auto: [
+                '--id',
+                workflowId,
+                '--auto-pack',
+                '--video-url',
+                videoUrl,
+                '--title',
+                titleDraft || '口播成片',
+                ...(styleHint ? ['--style-hint', styleHint] : [])
+            ]
+        }
+    })
+}
+
+/** 用户已确认「要包装」后的细节闸门（W4 或 need_pack 选 A 之后） */
 function packConfirmGate({ workflowId, videoUrl, titleDraft, audioUrl, voiceName, person }) {
     return ok({
         status: 'await_user',
@@ -133,13 +176,13 @@ function packConfirmGate({ workflowId, videoUrl, titleDraft, audioUrl, voiceName
         title_draft: titleDraft || '',
         ask: {
             zh: [
-                '数字人口播已完成。包装成片前请确认（也可直接说「全自动，你来安排」）：',
+                '开始包装前请确认（也可直接说「全自动，你来安排」）：',
                 '1. 模版：A 我来选（列几个风格） / B 系统自动选',
                 '2. 补充素材：A 只要这条主视频 / B 我再传几段视频或图片',
                 '3. 封面与标题：A 先给我草案再确认 / B 你全权智能安排'
             ].join('\n')
         },
-        hint: '对用户展示上方三项询问；未确认前禁止 create-task。用户说全自动后，用已有 video_url 走 viral-agent realMan，或带 --auto-pack --video-url 续跑。不要重新 speak。',
+        hint: '对用户展示上方三项询问；未确认前禁止 create-task。用户说全自动后，用已有 video_url 走 viral-agent，或带 --auto-pack --video-url 续跑。不要重新 speak。',
         next: {
             id: workflowId,
             after_user_confirms: [
@@ -240,7 +283,7 @@ try {
 
         if (!autoPack) {
             print(
-                packConfirmGate({
+                needPackGate({
                     workflowId: id,
                     videoUrl: spoken.data.video_url,
                     audioUrl: spoken.data.audio_url,
@@ -272,7 +315,7 @@ try {
 
         if (!autoPack) {
             print(
-                packConfirmGate({
+                needPackGate({
                     workflowId: id,
                     videoUrl: spoken.data.video_url,
                     audioUrl: spoken.data.audio_url,

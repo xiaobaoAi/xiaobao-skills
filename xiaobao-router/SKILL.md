@@ -43,9 +43,9 @@ node scripts/route.mjs --text "用户原话"
 | 提取文案 / 字幕 / 封面 / 分析视频 | 仅 `xiaobao-video-agent` |
 | 克隆声音、TTS、数字人说话 | 仅 `xiaobao-digital-human` |
 | 已有数字人视频做成爆款 / 只要剪辑包装 | 仅 `xiaobao-viral-agent` |
-| 把这个视频改成我的数字人口播 | Workflow 1（数字人后须包装确认闸门） |
-| 文案做成数字人口播短视频 | Workflow 2（数字人后须包装确认闸门） |
-| 提取后改写再做成数字人口播 | Workflow 3（改写由你完成；数字人后须包装确认闸门） |
+| 把这个视频改成我的数字人口播 | Workflow 1（数字人后先问是否包装） |
+| 文案做成数字人口播短视频 | Workflow 2（数字人后先问是否包装） |
+| 提取后改写再做成数字人口播 | Workflow 3（改写由你完成；数字人后先问是否包装） |
 | 视频加字幕并包装 | Workflow 4（包装前先确认模版/素材/封面标题，或用户说全自动） |
 
 细节：`references/workflows.md`。协议：`references/protocol.md`。
@@ -64,24 +64,31 @@ node scripts/run-workflow.mjs --id w1_video_digital_clip \
 
 形象和音色可省略，数字人 Skill 会用公共形象和公共音色，不要让用户先克隆。
 
-### 包装确认闸门（W1 / W2 / W3 / W4 均适用）
+### 数字人完成后的确认（W1 / W2 / W3）
 
-数字人（或字幕解析）完成后，`run-workflow.mjs` **默认停在** `status: "await_user"` / `stage: "pack_confirm"`，**禁止直接 create 剪辑**。
+数字人完成后，`run-workflow.mjs` **默认停在** `status: "await_user"` / `stage: "need_pack"`。
 
-你必须把询问展示给用户（也可等用户说「全自动，你来安排」）：
+**必须先把口播 `video_url` 交给用户，并问：**
 
-1. 模版：自己选（列 2～4 个中文风格） / 系统自动选  
-2. 补充素材：只要主视频 / 再传素材  
-3. 封面与标题：先给草案确认 / 全权智能安排  
+- A 需要继续模版包装成片  
+- B 不用包装，数字人视频就可以  
 
-用户确认或说全自动后，用已有 `video_url` 走 `xiaobao-viral-agent`，或：
+| 用户选择 | 你怎么做 |
+|----------|----------|
+| B / 不用包装 | **到此结束**，交付数字人视频；禁止 create-task |
+| A / 需要包装 | 再问三项：模版自选或自动、是否补素材、封面标题确认或全自动 |
+| 「全自动」 | 视为要包装，三项全权安排后剪辑 |
+
+要包装且已确认后，用已有 `video_url` 走 `xiaobao-viral-agent`，或：
 
 ```bash
 node scripts/run-workflow.mjs --id w2_copy_tts_digital_clip \
   --auto-pack --video-url "上一步 video_url" --title "标题" [--style-hint 科技]
 ```
 
-不要重新 `speak`。未确认前不要 create-task。
+不要重新 `speak`。未确认「要包装」前不要 create-task。
+
+W4（用户已明确要包装）可直接进入模版/素材/标题三项确认。
 
 每步返回：
 

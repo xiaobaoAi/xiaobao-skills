@@ -4,26 +4,27 @@
 
 ## Workflow 1 · `w1_video_digital_clip`
 
-视频解析 → 数字人 → **包装确认** → 智能剪辑
+视频解析 → 数字人 → **是否包装** →（若需要）包装细节确认 → 智能剪辑
 
 触发：「把这个视频改成我的数字人口播。」
 
 1. `video-agent` `analyze-video --intent analyze` → `copy`
 2. `digital-human` `speak.mjs` → `video_url`
-3. **停住**：`await_user` / `pack_confirm`（模版 / 素材 / 封面标题；或用户说全自动）
-4. 确认后 `viral-agent` `realMan` create/poll → 成片（可用 `--auto-pack --video-url`）
+3. **停住**：`await_user` / `need_pack`（先交口播视频，问要不要包装）
+4. 用户要包装 → 再确认模版/素材/标题（或全自动）→ `viral-agent` `realMan`
+5. 用户不要包装 → 交付 `video_url` 结束
 
 需要：原视频链接、形象视频、音色名称。
 
 ## Workflow 2 · `w2_copy_tts_digital_clip`
 
-文案 → TTS → 数字人 → **包装确认** → 智能剪辑
+文案 → TTS → 数字人 → **是否包装** →（若需要）包装细节 → 智能剪辑
 
 触发：「把这段文案用数字人做成短视频。」
 
 1. `speak.mjs`（内部 TTS + 数字人）
-2. **停住**：`await_user` / `pack_confirm`（同上；禁止默认闷头剪辑）
-3. 确认后 `viral-agent` `realMan`
+2. **停住**：`await_user` / `need_pack`（禁止默认闷头剪辑）
+3. 要包装才继续 `viral-agent` `realMan`；不要包装则交付口播视频
 
 需要：文案、形象视频、音色名称。
 
@@ -37,8 +38,8 @@
 
 1. `video-agent` `extract-copy.mjs` 拿原文案  
 2. Agent **当场改写**（不要问用户代写）  
-3. `run-workflow.mjs --id w3_video_rewrite_digital_clip --url … --rewritten-copy "改写稿"` → 数字人后停在包装确认
-4. 用户确认或全自动后再剪辑
+3. `run-workflow.mjs --id w3_video_rewrite_digital_clip --url … --rewritten-copy "改写稿"` → 数字人后停在「是否包装」
+4. 要包装再确认细节或全自动；不要包装则交付口播视频
 
 **兼容：** 若直接跑 workflow 且未带 `--rewritten-copy`，会返回 `await_agent` + 原文案；Agent 须同一轮改写后立刻重跑，不要当成失败或交给用户。
 
