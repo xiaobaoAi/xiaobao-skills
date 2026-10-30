@@ -1,4 +1,4 @@
-/** 内置公共音色与形象。用户用称呼即可，不必再克隆。voice_id 仅脚本内部使用。 */
+/** 公共音色内置；公共形象优先读开放平台目录，失败时用下面的兜底。voice_id 仅脚本内部使用。 */
 
 export const PUBLIC_VOICES = [
     {
@@ -43,7 +43,7 @@ export const PUBLIC_VOICES = [
     }
 ]
 
-export const PUBLIC_AVATARS = [
+const FALLBACK_AVATARS = [
     {
         name: '新闻主播',
         gender: 'female',
@@ -56,7 +56,7 @@ export const PUBLIC_AVATARS = [
         gender: 'female',
         style: '日常·自然',
         video_url:
-            'https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/2026092110432979e0c8897.mp4'
+            'https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/20260921120938441b78699.mp4'
     },
     {
         name: '男生新闻主播',
@@ -66,6 +66,48 @@ export const PUBLIC_AVATARS = [
             'https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/20260921105256763f36229.mp4'
     }
 ]
+
+let publicAvatars = FALLBACK_AVATARS
+
+function mapAvatar(row) {
+    const name = String(row?.name || '').trim()
+    const videoUrl = String(row?.video_url || '').trim()
+    if (!name || !videoUrl) return null
+    return {
+        id: String(row?.id || '').trim(),
+        name,
+        gender: String(row?.gender || '').trim(),
+        style: String(row?.style || '').trim(),
+        video_url: videoUrl,
+        sort: Number(row?.sort || 0)
+    }
+}
+
+/** 公共数字人形象列表：https://xiaoapis.com/doc/53 */
+export async function loadPublicAvatars() {
+    try {
+        const { loadCredentials } = await import('../vendor/xiaobao-api/credentials.mjs')
+        const { base_url, api_key } = loadCredentials()
+        const url = new URL('/api/aihuman/public_avatars', base_url)
+        url.searchParams.set('key', api_key)
+        const res = await fetch(url, { headers: { Accept: 'application/json' } })
+        const json = await res.json()
+        const code = json?.code
+        const ok = res.ok && (code === undefined || code === 200 || code === '200' || code === 0 || code === '0')
+        const list = Array.isArray(json?.data?.list) ? json.data.list.map(mapAvatar).filter(Boolean) : []
+        if (ok && list.length) {
+            list.sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0))
+            publicAvatars = list
+        }
+    } catch {
+        /* 无密钥或接口失败时继续用兜底形象 */
+    }
+    return publicAvatars
+}
+
+export function getPublicAvatars() {
+    return publicAvatars
+}
 
 const VOICE_ALIASES = {
     女声: '热情娜娜',
@@ -126,7 +168,7 @@ export function findPublicVoice(hint) {
 }
 
 export function findPublicAvatar(hint) {
-    return matchItem(PUBLIC_AVATARS, hint, AVATAR_ALIASES)
+    return matchItem(publicAvatars, hint, AVATAR_ALIASES)
 }
 
 export function defaultPublicVoice() {
@@ -135,9 +177,9 @@ export function defaultPublicVoice() {
 
 export function avatarForGender(gender) {
     if (gender === 'male') {
-        return findPublicAvatar('男生新闻主播') || PUBLIC_AVATARS.find((item) => item.gender === 'male')
+        return findPublicAvatar('男生新闻主播') || publicAvatars.find((item) => item.gender === 'male')
     }
-    return findPublicAvatar('日常自然') || PUBLIC_AVATARS.find((item) => item.gender === 'female') || PUBLIC_AVATARS[0]
+    return findPublicAvatar('日常自然') || publicAvatars.find((item) => item.gender === 'female') || publicAvatars[0]
 }
 
 export function resolveAvatarUrl(hint, voiceHint = '') {
@@ -164,5 +206,5 @@ export function publicVoiceNames() {
 }
 
 export function publicAvatarNames() {
-    return PUBLIC_AVATARS.map((item) => item.name)
+    return publicAvatars.map((item) => item.name)
 }

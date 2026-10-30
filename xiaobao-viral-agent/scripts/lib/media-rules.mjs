@@ -100,8 +100,11 @@ export function validateSmartClipMedia(apiType, body = {}) {
 
     if (type === 'broadcast_mixcut' || type === 'news_mixcut') {
         const audio = body.audioUrl || body.audio_url
-        if (type === 'broadcast_mixcut' && !audio && !body.content) {
-            warnings.push('口播混剪建议提供 audioUrl 或 content 文案')
+        if (type === 'broadcast_mixcut' && !audio) {
+            warnings.push('素材混剪需要 audioUrl（先 TTS）。不要传 content / speakerId')
+        }
+        if (type === 'broadcast_mixcut' && (body.content || body.speakerId)) {
+            errors.push('素材混剪不要传 content / speakerId，平台会返回 unsupported_speaker_branch')
         }
         if (audio) {
             checkUrl('audioUrl', audio, AUDIO_EXT, LIMITS.audioBytes, errors, warnings)

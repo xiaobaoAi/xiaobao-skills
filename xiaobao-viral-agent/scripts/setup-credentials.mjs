@@ -4,11 +4,11 @@ import { CREDENTIALS_FILE, saveCredentials } from './lib/credentials.mjs'
 
 const args = parseArgs()
 const apiKey = args['api-key'] || args.key || process.env.XIAOBAO_API_KEY
-const baseUrl = args['base-url'] || process.env.XIAOBAO_BASE_URL || 'https://apis.xiaobao.ink'
+const baseUrl = args['base-url'] || process.env.XIAOBAO_BASE_URL || 'https://xiaoapis.com'
 
 if (!apiKey || apiKey === true) {
     console.error(
-        '用法: node setup-credentials.mjs --api-key YOUR_KEY [--base-url https://apis.xiaobao.ink] [--notify-url https://...]'
+        '用法: node setup-credentials.mjs --api-key YOUR_KEY [--base-url https://xiaoapis.com] [--notify-url https://...]'
     )
     process.exit(1)
 }

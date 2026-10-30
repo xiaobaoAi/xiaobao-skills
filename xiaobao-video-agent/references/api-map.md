@@ -1,6 +1,6 @@
 # API 对照（视频理解）
 
-Base：`https://apis.xiaobao.ink`  
+Base：`https://xiaoapis.com`  
 鉴权：query / body 中的 `key`（与 viral-agent 同一本机凭据）。
 
 本 Skill **只读理解**，不调用 smartclip create。
@@ -9,9 +9,9 @@ Base：`https://apis.xiaobao.ink`
 
 | 能力 | Method | Path | 文档 | 脚本 |
 |------|--------|------|------|------|
-| 全平台解析 | POST JSON | `/api/video/videoparse` | [doc/43](https://apis.xiaobao.ink/doc/43) | `parse-video.mjs` / `extract-cover.mjs` |
-| 文案提取 | POST form | `/api/video/text` | [doc/28](https://apis.xiaobao.ink/doc/28) | `extract-copy.mjs` |
-| 字幕识别 | POST JSON | `/api/xiaobao/recognition` | [doc/42](https://apis.xiaobao.ink/doc/42) | `extract-subtitle.mjs` |
+| 全平台解析 | POST JSON | `/api/video/videoparse` | [doc/43](https://xiaoapis.com/doc/43) | `parse-video.mjs` / `extract-cover.mjs` |
+| 文案提取 | POST form | `/api/video/text` | [doc/28](https://xiaoapis.com/doc/28) | `extract-copy.mjs` |
+| 字幕识别 | POST JSON | `/api/xiaobao/recognition` | [doc/42](https://xiaoapis.com/doc/42) | `extract-subtitle.mjs` |
 
 ### videoparse body
 

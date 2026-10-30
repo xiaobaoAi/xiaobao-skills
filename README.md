@@ -2,7 +2,7 @@
 
 你说要什么视频，Agent 负责做成片。
 
-理解、数字人、剪辑由 Router 串好，和 [爆款智能体](https://xiaobao.ink/digital_human/agent) 是同一套能力，装在 Cursor / Codex 里。直连 [apis.xiaobao.ink](https://apis.xiaobao.ink/)，Key 只留在本机。本地素材会先上传；剪辑前按平台要求校验格式与时长。
+理解、数字人、剪辑由 Router 串好，和 [爆款智能体](https://xiaobao.ink/digital_human/agent) 是同一套能力，装在 Cursor / Codex 里。直连 [xiaoapis.com](https://xiaoapis.com/)，Key 只留在本机。本地素材会先上传；剪辑前按平台要求校验格式与时长。
 
 - 体验成片：[爆款智能体](https://xiaobao.ink/digital_human/agent)
 - 体验配音：[AI 配音台](https://xiaobao.ink/digital_human/ai_voice)
@@ -40,6 +40,8 @@ node xiaobao-router/scripts/route.mjs --text "把这个视频改成我的数字�
 | 素材混剪 | 文案或旁白，叠图片和视频 |
 | 新闻混剪 | 热点、资讯、事件解读 |
 | 视频包装 | 先确认是否包装、模版与素材，再加字幕和封面 |
+
+模式、接口和禁止项整理自 [智能剪辑场景页](https://xiaoapis.com/scenes/smartclip/)，写在 `xiaobao-viral-agent/references/smartclip-scene.md`。
 
 ## 丢给 Cursor / Codex
 
@@ -105,7 +107,7 @@ bash install-local.sh digital      # 仅数字人
 bash install-local.sh --codex
 
 node ~/.agents/skills/xiaobao-digital-human/scripts/setup-credentials.mjs \
-  --base-url https://apis.xiaobao.ink \
+  --base-url https://xiaoapis.com \
   --api-key YOUR_KEY
 ```
 

@@ -1,12 +1,12 @@
 # 用量与计费说明
 
-Skill 只负责编排调用，计费以 [apis.xiaobao.ink](https://apis.xiaobao.ink/) 各接口页面为准。下列为查阅时的常见口径（可能随平台调整）：
+Skill 只负责编排调用，计费以 [xiaoapis.com](https://xiaoapis.com/) 各接口页面为准。下列为查阅时的常见口径（可能随平台调整）：
 
 | 能力 | 文档 | 常见计费口径（参考） |
 |------|------|----------------------|
-| TTS 语音合成 | [doc/10](https://apis.xiaobao.ink/doc/10) | 按字数/次数，见文档 |
-| 数字人高清合成 | [doc/11](https://apis.xiaobao.ink/doc/11) | 约按成片秒数（如点数/秒） |
-| 声音克隆 | [doc/9](https://apis.xiaobao.ink/doc/9) | 按次，见文档 |
+| TTS 语音合成 | [doc/10](https://xiaoapis.com/doc/10) | 按字数/次数，见文档 |
+| 数字人高清合成 | [doc/11](https://xiaoapis.com/doc/11) | 约按成片秒数（如点数/秒） |
+| 声音克隆 | [doc/9](https://xiaoapis.com/doc/9) | 按次，见文档 |
 | 真人口播 / 混剪 / 新闻混剪 | smartclip 系列 | 按任务或时长，见对应文档 |
 
 **Agent 提示用户时：**

@@ -199,7 +199,7 @@ function guessMime(filename) {
 
 /**
  * 本地文件 → 公网 URL。
- * 文档：https://apis.xiaobao.ink/doc/49  POST /api/file/upload
+ * 文档：https://xiaoapis.com/doc/49  POST /api/file/upload
  */
 export async function uploadLocalFile(filePath, { folder, name } = {}) {
     const fs = await import('node:fs')
@@ -385,7 +385,7 @@ export async function pollAihumanTask(taskId, type, opts = {}) {
 
 /**
  * 语音合成查询。status：0 处理中，1 成功，2 失败。
- * 文档：https://apis.xiaobao.ink/doc/45
+ * 文档：https://xiaoapis.com/doc/45
  */
 export function interpretTtsQuery(resp) {
     const data = resp?.data && typeof resp.data === 'object' ? resp.data : {}
@@ -443,7 +443,7 @@ export async function pollTtsTask(taskId, { intervalMs = 4000, attempts = 60 } =
 
 /**
  * 声音克隆查询。status：0 处理中，1 成功，2 失败。
- * 文档：https://apis.xiaobao.ink/doc/47
+ * 文档：https://xiaoapis.com/doc/47
  */
 export function interpretCloneVoiceQuery(resp) {
     const data = resp?.data && typeof resp.data === 'object' ? resp.data : {}
@@ -502,7 +502,7 @@ export async function pollCloneVoiceTask(taskId, { intervalMs = 4000, attempts =
 
 /**
  * 数字人高清合成查询。status：0 处理中，1 成功，2 失败。
- * 文档：https://apis.xiaobao.ink/doc/48
+ * 文档：https://xiaoapis.com/doc/48
  */
 export function interpretCreateQuery(resp) {
     const data = resp?.data && typeof resp.data === 'object' ? resp.data : {}
@@ -560,7 +560,7 @@ export async function pollCreateTask(taskId, { intervalMs = 5000, attempts = 120
 
 /**
  * 智能剪辑任务查询。status：pending|processing|completed|failed。
- * 文档：https://apis.xiaobao.ink/doc/46
+ * 文档：https://xiaoapis.com/doc/46
  */
 export function interpretSmartClipQuery(resp) {
     const data = resp?.data && typeof resp.data === 'object' ? resp.data : resp || {}

@@ -2,7 +2,7 @@
 name: xiaobao-video-agent
 description: >-
   销豹视频理解与素材提取 Agent。当用户要分析视频、解析分享链接、提取文案/字幕/封面、
-  梳理内容结构或为后续爆款生成准备素材时使用。直连 apis.xiaobao.ink，只理解视频、
+  梳理内容结构或为后续爆款生成准备素材时使用。直连 xiaoapis.com，只理解视频、
   不负责最终剪辑成片；生成新视频请交接给 xiaobao-viral-agent。
 ---
 
@@ -119,4 +119,4 @@ node scripts/extract-subtitle.mjs --file-url "https://...mp4"
 - `examples/natural-language.md`
 - `examples/insight.schema.json`
 
-开放平台：https://apis.xiaobao.ink/
+开放平台：https://xiaoapis.com/

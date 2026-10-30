@@ -4,13 +4,13 @@ HTTP 实现见各 Skill 内 `scripts/vendor/xiaobao-api`（源码：`shared/xiao
 
 | 能力 | Path | 文档 | 脚本 |
 |------|------|------|------|
-| 文件上传 | POST `/api/file/upload` | [doc/49](https://apis.xiaobao.ink/doc/49) | `upload.mjs`；克隆/合成遇本地路径会自动上传 |
-| 声音克隆 | POST `/api/aihuman/clonevoice` | [doc/9](https://apis.xiaobao.ink/doc/9) | `clone-voice.mjs` |
-| 声音克隆查询 | GET `/api/aihuman/clonevoice_query` | [doc/47](https://apis.xiaobao.ink/doc/47) | `clone-voice.mjs` 内置轮询 |
-| TTS | POST `/api/aihuman/tts` | [doc/10](https://apis.xiaobao.ink/doc/10) | `tts.mjs` |
-| 语音合成查询 | GET `/api/aihuman/tts_query` | [doc/45](https://apis.xiaobao.ink/doc/45) | `tts.mjs` 内置轮询 |
-| 数字人合成 | POST `/api/aihuman/create` | [doc/11](https://apis.xiaobao.ink/doc/11) | `create-avatar.mjs` |
-| 数字人合成查询 | GET `/api/aihuman/create_query` | [doc/48](https://apis.xiaobao.ink/doc/48) | `create-avatar.mjs` 内置轮询 |
+| 文件上传 | POST `/api/file/upload` | [doc/49](https://xiaoapis.com/doc/49) | `upload.mjs`；克隆/合成遇本地路径会自动上传 |
+| 声音克隆 | POST `/api/aihuman/clonevoice` | [doc/9](https://xiaoapis.com/doc/9) | `clone-voice.mjs` |
+| 声音克隆查询 | GET `/api/aihuman/clonevoice_query` | [doc/47](https://xiaoapis.com/doc/47) | `clone-voice.mjs` 内置轮询 |
+| TTS | POST `/api/aihuman/tts` | [doc/10](https://xiaoapis.com/doc/10) | `tts.mjs` |
+| 语音合成查询 | GET `/api/aihuman/tts_query` | [doc/45](https://xiaoapis.com/doc/45) | `tts.mjs` 内置轮询 |
+| 数字人合成 | POST `/api/aihuman/create` | [doc/11](https://xiaoapis.com/doc/11) | `create-avatar.mjs` |
+| 数字人合成查询 | GET `/api/aihuman/create_query` | [doc/48](https://xiaoapis.com/doc/48) | `create-avatar.mjs` 内置轮询 |
 
 ### 克隆 body
 

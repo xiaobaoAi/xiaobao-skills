@@ -3,7 +3,7 @@ name: xiaobao-digital-human
 description: >-
   销豹数字人生产能力。当用户要克隆声音、文案转语音(TTS)、数字人出镜说话、
   生成口播视频或音频时使用。已内置公共音色和公共形象，未要求「用我的声音」时不要克隆。
-  直连 apis.xiaobao.ink；不负责模版混剪/新闻混剪/视频包装
+  直连 xiaoapis.com；不负责模版混剪/新闻混剪/视频包装
   （那些交给 xiaobao-viral-agent）。对用户隐藏 voice_id、task_id 与 API 路径。
 ---
 
@@ -22,7 +22,7 @@ description: >-
 
 创建配音 / 克隆 / 数字人时会自动带 `notify`（默认 `https://xiaobao.ink/api/digitalhuman/notifyTTS`）。只为过平台校验；结果仍用查询接口轮询，不依赖回调内容。可用 `--notify`、凭据里的 `notify_url` 或环境变量 `XIAOBAO_NOTIFY_URL` 覆盖。
 
-公共音色和公共形象已经内置在 `scripts/lib/public-catalog.mjs`。**默认用公共的，不要让用户重新克隆。** 只有用户明确说「用我的声音 / 克隆这段录音」时才走克隆。
+公共音色内置在 `scripts/lib/public-catalog.mjs`。公共形象由 `speak.mjs` 读取 [公共数字人形象列表](https://xiaoapis.com/doc/53)，接口不可用时才用内置兜底。**默认用公共的，不要让用户重新克隆。** 只有用户明确说「用我的声音 / 克隆这段录音」时才走克隆。
 
 ### 公共音色
 
@@ -38,12 +38,12 @@ description: >-
 
 ### 公共形象
 
-未指定形象时：女声默认 **日常自然**，男声默认 **男生新闻主播**。`--person-video` 可直接传称呼，脚本会换成地址。
+目录以 [公共数字人形象列表](https://xiaoapis.com/doc/53) 的实时返回为准。未指定形象时：女声默认 **日常自然**，男声默认 **男生新闻主播**。`--person-video` 可直接传称呼，脚本会换成地址。下面是接口不可用时的兜底形象。
 
 | 称呼 | 风格 | 视频 |
 |------|------|------|
 | 新闻主播 | 职业女性 · 专业 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/202609211043306cd031836.mp4 |
-| 日常自然 | 日常 · 自然 · 女性 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/2026092110432979e0c8897.mp4 |
+| 日常自然 | 日常 · 自然 · 女性 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/20260921120938441b78699.mp4 |
 | 男生新闻主播 | 男性 · 新闻主播 | https://wikixiaobao.oss-accelerate.aliyuncs.com/uploads/video/20260921/20260921105256763f36229.mp4 |
 
 ---
@@ -80,7 +80,7 @@ description: >-
 | 克隆我的声音 | 仅此时 `clone-voice.mjs` |
 | 用我的声音读文案 | 已保存名称用 `--voice-name`；否则 `--audio-url` 样本（公网或本地）边克隆边合成 |
 | 用数字人说这段话 | `speak.mjs`。形象可省略，或 `--person-video 日常自然` / `新闻主播` / `男生新闻主播` |
-| 数字人视频后再做完整短视频 | speak/create-avatar → **先问是否包装** → 要则 **xiaobao-viral-agent** |
+| 数字人视频后再做完整短视频 | speak/create-avatar → **xiaobao-viral-agent** |
 
 ---
 
@@ -88,24 +88,22 @@ description: >-
 
 ### 声音克隆
 
-样本音频（公网 URL 或本地文件，本地会先 [上传](https://apis.xiaobao.ink/doc/49)）→ `clone-voice.mjs` 提交后用 [声音克隆查询](https://apis.xiaobao.ink/doc/47) 轮询到 `voice_id` → 保存音色名称 → 告诉用户「已保存为××音色」
+样本音频（公网 URL 或本地文件，本地会先 [上传](https://xiaoapis.com/doc/49)）→ `clone-voice.mjs` 提交后用 [声音克隆查询](https://xiaoapis.com/doc/47) 轮询到 `voice_id` → 保存音色名称 → 告诉用户「已保存为××音色」
 
 ### TTS
 
-文案 + 音色名称（公共名或已克隆名；省略则热情娜娜）→ `tts.mjs` 提交后用 [语音合成查询](https://apis.xiaobao.ink/doc/45) 到 **audio_url**
+文案 + 音色名称（公共名或已克隆名；省略则热情娜娜）→ `tts.mjs` 提交后用 [语音合成查询](https://xiaoapis.com/doc/45) 到 **audio_url**
 
 ### 数字人
 
-人物视频（可写公共形象称呼）+ 音频或文案 → `create-avatar.mjs` / `speak.mjs` 提交后用 [数字人合成查询](https://apis.xiaobao.ink/doc/48) 轮询到 **video_url**
+人物视频（可写公共形象称呼）+ 音频或文案 → `create-avatar.mjs` / `speak.mjs` 提交后用 [数字人合成查询](https://xiaoapis.com/doc/48) 轮询到 **video_url**
 
 ### 串联短视频
 
-先交付数字人 `video_url`，并确认用户是否还要包装；不要包装则结束。
-
 ```
 文案 + 形象 + 声音
-  → digital-human（audio_url / video_url）→ 问是否包装
-  →（若需要）viral-agent（realMan 等模版剪辑）
+  → digital-human（audio_url / video_url）
+  → viral-agent（realMan 等模版剪辑）
   → 最终成片 URL
 ```
 

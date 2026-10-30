@@ -12,6 +12,20 @@ export const VOICES_FILE = path.join(CREDENTIALS_DIR, 'voices.json')
  */
 export const DEFAULT_NOTIFY_URL = 'https://xiaobao.ink/api/digitalhuman/notifyTTS'
 
+/** 本机凭据里若仍是旧开放平台域名，改写到当前地址。 */
+export function migrateBaseUrl(url) {
+    const trimmed = String(url || '').trim().replace(/\/+$/, '')
+    if (!trimmed) return 'https://xiaoapis.com'
+    try {
+        if (new URL(trimmed).hostname.toLowerCase() === 'apis.xiaobao.ink') {
+            return 'https://xiaoapis.com'
+        }
+    } catch {
+        return trimmed
+    }
+    return trimmed
+}
+
 export function resolveNotifyUrl(explicit) {
     const fromArg = String(explicit || '').trim()
     if (fromArg) return fromArg
@@ -43,14 +57,11 @@ export function loadCredentials() {
             throw new Error(`凭据文件无法解析: ${CREDENTIALS_FILE}`)
         }
     }
-    const base_url = (fromEnv.base_url || fromFile.base_url || 'https://apis.xiaobao.ink').replace(
-        /\/+$/,
-        ''
-    )
+    const base_url = migrateBaseUrl(fromEnv.base_url || fromFile.base_url || 'https://xiaoapis.com')
     const api_key = fromEnv.api_key || fromFile.api_key || ''
     if (!api_key) {
         throw new Error(
-            `未配置 API Key。请运行 setup-credentials.mjs，或设置 XIAOBAO_API_KEY。申请：https://apis.xiaobao.ink/`
+            `未配置 API Key。请运行 setup-credentials.mjs，或设置 XIAOBAO_API_KEY。申请：https://xiaoapis.com/`
         )
     }
     return {
@@ -69,7 +80,7 @@ export function saveCredentials({
     default_voice_id,
     default_voice_type
 }) {
-    const url = String(base_url || 'https://apis.xiaobao.ink').trim().replace(/\/+$/, '')
+    const url = migrateBaseUrl(base_url || 'https://xiaoapis.com')
     const key = String(api_key || '').trim()
     if (!key) throw new Error('api_key 不能为空')
     fs.mkdirSync(CREDENTIALS_DIR, { recursive: true, mode: 0o700 })

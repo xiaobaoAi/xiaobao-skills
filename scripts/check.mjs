@@ -264,7 +264,7 @@ test('公共音色和形象按称呼解析，不必克隆', () => {
     assert.match(resolveAvatarUrl('男生新闻主播'), /20260921105256763f36229/)
     assert.match(resolveAvatarUrl('男主播'), /20260921105256763f36229/)
     assert.match(resolveAvatarUrl('', '故事解读'), /20260921105256763f36229/)
-    assert.match(resolveAvatarUrl('', '热情娜娜'), /2026092110432979e0c8897/)
+    assert.match(resolveAvatarUrl('', '热情娜娜'), /20260921120938441b78699/)
     assert.match(resolveAvatarUrl('年轻女性商务'), /202609211043306cd031836/)
     assert.equal(resolveAvatarUrl('https://example.com/a.mp4', '女声'), 'https://example.com/a.mp4')
 })

@@ -9,7 +9,7 @@ import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs, printJson, ensurePublicUrl, friendlyError } from './vendor/xiaobao-api/client.mjs'
-import { publicAvatarNames, resolveAvatarUrl } from './lib/public-catalog.mjs'
+import { loadPublicAvatars, publicAvatarNames, resolveAvatarUrl } from './lib/public-catalog.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const args = parseArgs()
@@ -17,6 +17,7 @@ const args = parseArgs()
 const text = String(args.text || '').trim()
 const voiceHint = String(args['voice-name'] || args.name || '').trim()
 const personRaw = String(args['person-video'] || args['video-url'] || '').trim()
+if (text) await loadPublicAvatars()
 let personVideo = resolveAvatarUrl(personRaw, voiceHint || '热情娜娜')
 
 if (!text || !personVideo) {

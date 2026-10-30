@@ -7,7 +7,7 @@ Router（xiaobao-router）
   ↓ 选择 1 个 Skill 或 1 条 Workflow
 Skill（video / digital-human / viral）
   ↓ 现有 scripts
-API（apis.xiaobao.ink，仅 Skill 内）
+API（xiaoapis.com，仅 Skill 内）
   ↓
 Task（异步 task）
   ↓

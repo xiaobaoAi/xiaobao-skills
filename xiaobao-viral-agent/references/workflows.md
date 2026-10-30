@@ -45,7 +45,7 @@
 
 - 可选：调用 **xiaobao-digital-human** 的 `tts.mjs` / `create-avatar.mjs`（本目录同名文件只转发）
 - `create-task.mjs --mode realMan`
-- `poll-task.mjs --task-id <id>`（统一 [doc/46](https://apis.xiaobao.ink/doc/46) 查询）
+- `poll-task.mjs --task-id <id>`（统一 [doc/46](https://xiaoapis.com/doc/46) 查询）
 
 ### 输出
 
@@ -176,4 +176,4 @@
 → validate-media / create-task（默认校验）→ poll-task → 只返回成片或中文失败说明
 ```
 
-编排细节与字段白名单：`api-map.md`。错误话术：`errors.md`。
+编排细节与字段白名单：`api-map.md`。场景页整理：`smartclip-scene.md`。错误话术：`errors.md`。

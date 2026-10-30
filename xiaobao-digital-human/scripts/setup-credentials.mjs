@@ -4,7 +4,7 @@ import { saveCredentials, CREDENTIALS_FILE } from './vendor/xiaobao-api/credenti
 
 const args = parseArgs()
 const apiKey = String(args['api-key'] || args.api_key || args.key || '').trim()
-const baseUrl = String(args['base-url'] || args.base_url || 'https://apis.xiaobao.ink').trim()
+const baseUrl = String(args['base-url'] || args.base_url || 'https://xiaoapis.com').trim()
 const notifyUrl = String(args['notify-url'] || args.notify_url || '').trim()
 if (!apiKey) {
     console.error(

@@ -37,7 +37,7 @@ description: >-
 - 文案配音再叠素材、图片视频混剪
 - 新闻热点解读成片
 - 给已有视频加字幕、特效、封面、科技感包装
-- 在 Codex / Cursor 里直接出片（直连 apis.xiaobao.ink）
+- 在 Codex / Cursor 里直接出片（直连 xiaoapis.com）
 
 非视频生产、与销豹剪辑无关的请求：不要硬套本 Skill。
 
@@ -85,6 +85,8 @@ description: >-
 仍无法判断时，用自然语言问一句，例如：  
 「更像是人物出镜口播，还是文案配音叠素材，还是给已有视频加包装？」  
 不要列出内部 mode 英文名作为唯一选项（可括注，但主文案用人话）。
+
+接口顺序、必填字段和禁止项以 [references/smartclip-scene.md](references/smartclip-scene.md) 为准（整理自 [智能剪辑场景页](https://xiaoapis.com/scenes/smartclip/)）。`scene` 必须和合成接口成对。真人口播合成不要传音色 ID；素材混剪只传 `audioUrl`，不要传 `content` / `speakerId`。
 
 ---
 
@@ -160,7 +162,7 @@ node scripts/list-templates.mjs --scene <scene>
 
 ## 8. 处理素材
 
-**硬性要求见 [references/media-requirements.md](references/media-requirements.md)**（来自 [doc/25](https://apis.xiaobao.ink/doc/25)）。不合规会生成失败，提交前必须核对。
+**硬性要求见 [references/media-requirements.md](references/media-requirements.md)**（来自 [doc/25](https://xiaoapis.com/doc/25)）。不合规会生成失败，提交前必须核对。
 
 摘要：
 
@@ -173,7 +175,7 @@ node scripts/list-templates.mjs --scene <scene>
 步骤：
 
 1. 优先公网 `https` URL。
-2. 本地路径：先 `scripts/upload.mjs --file ./local.mp4`（[doc/49](https://apis.xiaobao.ink/doc/49)）。
+2. 本地路径：先 `scripts/upload.mjs --file ./local.mp4`（[doc/49](https://xiaoapis.com/doc/49)）。
 3. 提交前：`node scripts/validate-media.mjs --mode <mode> --input payload.json`；或依赖 `create-task.mjs` 内置校验（有 errors 会直接拒绝）。
 4. 包装任务可先 `recognize.mjs` 生成字幕分段，再写入内部 payload。
 5. 需要配音且无音频时：内部走 TTS / 克隆；向用户只确认声音类型，不要求 voice_id。
@@ -199,7 +201,7 @@ node scripts/list-templates.mjs --scene <scene>
    （默认拦不合格素材；仅排障可用 `--skip-validate`）
 6. **poll-task：**  
    `node scripts/poll-task.mjs --task-id <id>`  
-   内部走统一查询 [doc/46](https://apis.xiaobao.ink/doc/46) `/api/smartclip/task_query`，不需要再带 mode。`--mode` 仅兼容旧调用。对用户不展示任务号。
+   内部走统一查询 [doc/46](https://xiaoapis.com/doc/46) `/api/smartclip/task_query`，不需要再带 mode。`--mode` 仅兼容旧调用。对用户不展示任务号。
 7. **终态：** 成功 → 成片 URL；失败 → 中文原因（优先对照 media-requirements 调整素材）。
 
 声音、配音、数字人视频不要在本目录另写请求。`tts.mjs` / `clone-voice.mjs` / `create-avatar.mjs` / `query-task.mjs` 只转发到 **xiaobao-digital-human**（同一份 `voices.json`）。字幕识别仍用本目录 `recognize.mjs`。
@@ -210,7 +212,7 @@ node scripts/list-templates.mjs --scene <scene>
 
 ## 10. 轮询
 
-- 使用 `poll-task.mjs --task-id ...`，按 [智能剪辑任务查询](https://apis.xiaobao.ink/doc/46) 轮询到 `completed` / `failed`。
+- 使用 `poll-task.mjs --task-id ...`，按 [智能剪辑任务查询](https://xiaoapis.com/doc/46) 轮询到 `completed` / `failed`。
 - 默认约等 15 分钟；超时后不要当成任务失败，可稍后用同一任务号再查。超长成片可用 `--attempts 360`（约 30 分钟）。
 - 不要再用各 create 路径的 `action=query`。
 - **对用户：** 可简短提示「正在生成，请稍候」；不要刷中间状态码。
@@ -225,7 +227,7 @@ node scripts/list-templates.mjs --scene <scene>
 
 | 情况 | 对用户怎么说（示意） |
 |------|----------------------|
-| Key 无效 / 401 | 开放平台密钥无效或未配置，请检查本机凭据与 [apis.xiaobao.ink](https://apis.xiaobao.ink/) |
+| Key 无效 / 401 | 开放平台密钥无效或未配置，请检查本机凭据与 [xiaoapis.com](https://xiaoapis.com/) |
 | 权限不足 | 当前账号没有该能力权限，请到开放平台开通 |
 | 余额不足 | 余额或点数不足，请充值后再试 |
 | 模版不可用 | 所选风格暂不可用，已尝试更换或请换一种风格描述 |
@@ -268,7 +270,7 @@ node scripts/list-templates.mjs --scene <scene>
 路径：`~/.xiaobao-skills/credentials.json`  
 环境变量：`XIAOBAO_BASE_URL`、`XIAOBAO_API_KEY`  
 写入：`node scripts/setup-credentials.mjs --api-key YOUR_KEY`  
-申请：https://apis.xiaobao.ink/
+申请：https://xiaoapis.com/
 
 ---
 

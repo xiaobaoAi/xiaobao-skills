@@ -3,6 +3,8 @@
 Agent 先根据自然语言判定下表「模式」，再收集用户层最小输入。  
 括号内为内部 mode 名，**不要要求用户背这些英文名**。
 
+接口配对、必填字段与禁止项见 [smartclip-scene.md](smartclip-scene.md)。
+
 ---
 
 ## realMan · 数字人 / 真人口播

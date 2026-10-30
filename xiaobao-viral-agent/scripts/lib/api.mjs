@@ -89,7 +89,6 @@ export function whitelistBody(apiType, body) {
             'materials',
             'audioUrl',
             'resolution',
-            'content',
             'callback_url',
             'notify',
             'title',
@@ -111,13 +110,13 @@ export function whitelistBody(apiType, body) {
             'packRules',
             'structLayers',
             'processRules',
-            'introduceCard',
-            'content'
+            'introduceCard'
         ])
     }
     return pick(src, [
         'styleId',
         'videoUrl',
+        'resolution',
         'language',
         'title',
         'materials',
